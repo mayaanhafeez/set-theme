@@ -1,0 +1,166 @@
+#!/usr/bin/env bash
+# set-theme — unified theme switcher for kitty, ghostty, nvim, opencode, macwifi, btop, sketchybar
+#
+# Usage:
+#   set-theme <theme>        apply theme and save it
+#   set-theme                re-apply the last saved theme
+#
+# Active theme is persisted in ~/.config/theme.
+#
+# To add a new theme, add a matching case block below and define all variables.
+# Themes must also exist in each app's own config (e.g. a sketchybar themes/*.lua file).
+
+set -euo pipefail
+
+THEME_FILE="$HOME/.config/theme"
+
+THEME="${1:-}"
+if [[ -z "$THEME" && -f "$THEME_FILE" ]]; then
+  THEME=$(tr -d '[:space:]' < "$THEME_FILE")
+fi
+
+if [[ -z "$THEME" ]]; then
+  echo "Usage: set-theme <theme>"
+  echo "Available: catppuccin-mocha, rose-pine"
+  exit 1
+fi
+
+# ── Theme definitions ──────────────────────────────────────────────────────────
+# NVIM_*_ENABLED toggles the plugin's enabled field in its respective plugin file.
+# btop ships no catppuccin/rose-pine themes; closest built-ins are used instead.
+
+case "$THEME" in
+  catppuccin-mocha)
+    KITTY_THEME="Catppuccin-Mocha"
+    GHOSTTY_THEME="Catppuccin Mocha"
+    NVIM_COLORSCHEME="catppuccin"
+    NVIM_CATPPUCCIN_ENABLED=true
+    NVIM_ROSEPINE_ENABLED=false
+    OPENCODE_THEME="catppuccin"
+    MACWIFI_THEME="catppuccin-mocha"
+    SKETCHYBAR_THEME="catppuccin_mocha"
+    BTOP_THEME="$HOME/.config/btop/themes/catppuccin_mocha.theme"
+    ;;
+  rose-pine)
+    KITTY_THEME="Rosé Pine"
+    GHOSTTY_THEME="Rose Pine"
+    NVIM_COLORSCHEME="rose-pine"
+    NVIM_CATPPUCCIN_ENABLED=false
+    NVIM_ROSEPINE_ENABLED=true
+    OPENCODE_THEME="rosepine"
+    MACWIFI_THEME="rose-pine"
+    SKETCHYBAR_THEME="rose_pine"
+    BTOP_THEME="$HOME/.config/btop/themes/rose_pine.theme"
+    ;;
+  *)
+    echo "Unknown theme: $THEME"
+    echo "Available: catppuccin-mocha, rose-pine"
+    exit 1
+    ;;
+esac
+
+echo "$THEME" > "$THEME_FILE"
+echo "Setting theme: $THEME"
+echo ""
+
+# ── Kitty ──────────────────────────────────────────────────────────────────────
+# Dumps theme colors into current-theme.conf (included by kitty.conf), then
+# applies them live via the kitty socket without showing the interactive UI.
+echo "→ kitty"
+KITTY_THEME_CONF="$HOME/.config/kitty/current-theme.conf"
+if kitty +kitten themes --dump-theme "$KITTY_THEME" > "$KITTY_THEME_CONF" 2>/dev/null; then
+  kitty @ --to=unix:/tmp/kitty set-colors --all "$KITTY_THEME_CONF" 2>/dev/null \
+    && echo "  applied" \
+    || echo "  config updated (kitty not running)"
+else
+  echo "  theme not found: $KITTY_THEME"
+fi
+
+# ── Ghostty ────────────────────────────────────────────────────────────────────
+# Ghostty reads config from Application Support on macOS, ~/.config/ghostty on Linux.
+# SIGUSR2 triggers a live config reload.
+echo "→ ghostty"
+if [[ -d "$HOME/Library/Application Support/com.mitchellh.ghostty" ]]; then
+  GHOSTTY_CONF="$HOME/Library/Application Support/com.mitchellh.ghostty/config.ghostty"
+  GHOSTTY_AUTO="$HOME/Library/Application Support/com.mitchellh.ghostty/auto/theme.ghostty"
+else
+  GHOSTTY_CONF="$HOME/.config/ghostty/config"
+  GHOSTTY_AUTO=""
+fi
+if [[ -f "$GHOSTTY_CONF" ]]; then
+  sed -i '' "s/^theme = .*/theme = $GHOSTTY_THEME/" "$GHOSTTY_CONF"
+  [[ -n "$GHOSTTY_AUTO" ]] && printf 'theme = %s\n' "$GHOSTTY_THEME" > "$GHOSTTY_AUTO"
+  pkill -SIGUSR2 ghostty 2>/dev/null \
+    && echo "  applied" \
+    || echo "  config updated (ghostty not running)"
+fi
+
+# ── Nvim ───────────────────────────────────────────────────────────────────────
+# Updates the active colorscheme and toggles each theme plugin's enabled field.
+# Requires nvim restart to take effect.
+echo "→ nvim"
+NVIM_PLUGINS="$HOME/.config/nvim/lua/plugins"
+sed -i '' "s/colorscheme = \".*\"/colorscheme = \"$NVIM_COLORSCHEME\"/" \
+  "$NVIM_PLUGINS/colorscheme.lua"
+if $NVIM_CATPPUCCIN_ENABLED; then
+  sed -i '' 's/enabled = false,$/enabled = true,/' "$NVIM_PLUGINS/colorscheme-catppuccin.lua"
+else
+  sed -i '' 's/enabled = true,$/enabled = false,/' "$NVIM_PLUGINS/colorscheme-catppuccin.lua"
+fi
+if $NVIM_ROSEPINE_ENABLED; then
+  sed -i '' 's/enabled = false,$/enabled = true,/' "$NVIM_PLUGINS/colorscheme-rose-pine.lua"
+else
+  sed -i '' 's/enabled = true,$/enabled = false,/' "$NVIM_PLUGINS/colorscheme-rose-pine.lua"
+fi
+echo "  config updated (restart nvim to apply)"
+
+# ── Opencode ───────────────────────────────────────────────────────────────────
+echo "→ opencode"
+OPENCODE_CONF="$HOME/.config/opencode/opencode.jsonc"
+if [[ -f "$OPENCODE_CONF" ]]; then
+  python3 - "$OPENCODE_CONF" "$OPENCODE_THEME" <<'PYEOF'
+import json, sys
+path, theme = sys.argv[1], sys.argv[2]
+with open(path) as f:
+    c = json.load(f)
+c['theme'] = theme
+with open(path, 'w') as f:
+    json.dump(c, f, indent=2)
+    f.write('\n')
+PYEOF
+  echo "  updated"
+fi
+
+# ── Macwifi ────────────────────────────────────────────────────────────────────
+echo "→ macwifi"
+MACWIFI_CONF="$HOME/Library/Application Support/macwifi/config.toml"
+if [[ -f "$MACWIFI_CONF" ]]; then
+  if grep -q '^theme = ' "$MACWIFI_CONF"; then
+    sed -i '' "s/^theme = .*/theme = \"$MACWIFI_THEME\"/" "$MACWIFI_CONF"
+  else
+    echo "theme = \"$MACWIFI_THEME\"" >> "$MACWIFI_CONF"
+  fi
+  echo "  updated"
+fi
+
+# ── Btop ───────────────────────────────────────────────────────────────────────
+# Requires btop restart to apply. Community themes live in ~/.config/btop/themes/.
+echo "→ btop"
+BTOP_CONF="$HOME/.config/btop/btop.conf"
+if [[ -f "$BTOP_CONF" ]]; then
+  sed -i '' "s|^color_theme = .*|color_theme = \"$BTOP_THEME\"|" "$BTOP_CONF"
+  echo "  config updated (restart btop to apply)"
+fi
+
+# ── SketchyBar ─────────────────────────────────────────────────────────────────
+echo "→ sketchybar"
+SKETCHYBAR_SETTINGS="$HOME/.config/sketchybar/settings.lua"
+if [[ -f "$SKETCHYBAR_SETTINGS" ]]; then
+  sed -i '' "s/theme = \".*\",/theme = \"$SKETCHYBAR_THEME\",/" "$SKETCHYBAR_SETTINGS"
+  sketchybar --reload 2>/dev/null \
+    && echo "  applied" \
+    || echo "  config updated (sketchybar not running)"
+fi
+
+echo ""
+echo "Done. Active theme: $THEME"
