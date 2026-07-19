@@ -21,7 +21,7 @@ fi
 
 if [[ -z "$THEME" ]]; then
   echo "Usage: set-theme <theme>"
-  echo "Available: catppuccin-mocha, rose-pine"
+  echo "Available: catppuccin-mocha, rose-pine, tokyo-night"
   exit 1
 fi
 
@@ -36,6 +36,7 @@ case "$THEME" in
     NVIM_COLORSCHEME="catppuccin"
     NVIM_CATPPUCCIN_ENABLED=true
     NVIM_ROSEPINE_ENABLED=false
+    NVIM_TOKYONIGHT_ENABLED=false
     OPENCODE_THEME="catppuccin"
     MACWIFI_THEME="catppuccin-mocha"
     SKETCHYBAR_THEME="catppuccin_mocha"
@@ -47,14 +48,27 @@ case "$THEME" in
     NVIM_COLORSCHEME="rose-pine"
     NVIM_CATPPUCCIN_ENABLED=false
     NVIM_ROSEPINE_ENABLED=true
+    NVIM_TOKYONIGHT_ENABLED=false
     OPENCODE_THEME="rosepine"
     MACWIFI_THEME="rose-pine"
     SKETCHYBAR_THEME="rose_pine"
     BTOP_THEME="$HOME/.config/btop/themes/rose_pine.theme"
     ;;
+  tokyo-night)
+    KITTY_THEME="Tokyo Night Storm"
+    GHOSTTY_THEME="TokyoNight Storm"
+    NVIM_COLORSCHEME="tokyonight"
+    NVIM_CATPPUCCIN_ENABLED=false
+    NVIM_ROSEPINE_ENABLED=false
+    NVIM_TOKYONIGHT_ENABLED=true
+    OPENCODE_THEME="tokyonight"
+    MACWIFI_THEME="tokyo-night-storm"
+    SKETCHYBAR_THEME="tokyo_night_storm"
+    BTOP_THEME="$HOME/.config/btop/themes/tokyo_night_storm.theme"
+    ;;
   *)
     echo "Unknown theme: $THEME"
-    echo "Available: catppuccin-mocha, rose-pine"
+    echo "Available: catppuccin-mocha, rose-pine, tokyo-night"
     exit 1
     ;;
 esac
@@ -111,6 +125,11 @@ if $NVIM_ROSEPINE_ENABLED; then
   sed -i '' 's/enabled = false,$/enabled = true,/' "$NVIM_PLUGINS/colorscheme-rose-pine.lua"
 else
   sed -i '' 's/enabled = true,$/enabled = false,/' "$NVIM_PLUGINS/colorscheme-rose-pine.lua"
+fi
+if $NVIM_TOKYONIGHT_ENABLED; then
+  sed -i '' 's/enabled = false,$/enabled = true,/' "$NVIM_PLUGINS/colorscheme-tokyonight.lua"
+else
+  sed -i '' 's/enabled = true,$/enabled = false,/' "$NVIM_PLUGINS/colorscheme-tokyonight.lua"
 fi
 echo "  config updated (restart nvim to apply)"
 
