@@ -2,28 +2,84 @@
 # set-theme — unified theme switcher for kitty, ghostty, nvim, opencode, macwifi, btop, sketchybar
 #
 # Usage:
-#   set-theme <theme>        apply theme and save it
-#   set-theme                re-apply the last saved theme
+#   set-theme <theme>        apply theme and save it (name is fuzzy-matched,
+#                            e.g. "catppuccin", "rosepine", or a typo all resolve)
+#   set-theme                list available themes (marks the active one)
 #
 # Active theme is persisted in ~/.config/theme.
 #
-# To add a new theme, add a matching case block below and define all variables.
-# Themes must also exist in each app's own config (e.g. a sketchybar themes/*.lua file).
+# To add a new theme, add it to THEMES below, add a matching case block, and
+# define all variables. Themes must also exist in each app's own config
+# (e.g. a sketchybar themes/*.lua file).
 
 set -euo pipefail
 
 THEME_FILE="$HOME/.config/theme"
 
+# Available themes, in display order.
+THEMES=(catppuccin-mocha rose-pine rose-pine-moon tokyo-night tokyo-night-storm)
+
+list_themes() {
+  local current=""
+  [[ -f "$THEME_FILE" ]] && current=$(tr -d '[:space:]' < "$THEME_FILE")
+  echo "Available themes:"
+  local t
+  for t in "${THEMES[@]}"; do
+    if [[ "$t" == "$current" ]]; then
+      echo "  * $t (active)"
+    else
+      echo "    $t"
+    fi
+  done
+}
+
+# Resolve a (possibly partial/misspelled) input to a canonical theme name.
+# Prints the match and returns 0, or returns 1 if nothing matches.
+#   1. case-insensitive exact match
+#   2. fzf fuzzy match (handles partials like "catppuccin" and typos)
+#   3. hyphen/space-insensitive substring match (fallback when fzf is absent)
+resolve_input() {
+  local input q t match=""
+  input="$1"
+  q=$(printf '%s' "$input" | tr '[:upper:]' '[:lower:]')
+
+  for t in "${THEMES[@]}"; do
+    [[ "$(printf '%s' "$t" | tr '[:upper:]' '[:lower:]')" == "$q" ]] && { printf '%s\n' "$t"; return 0; }
+  done
+
+  if command -v fzf >/dev/null 2>&1; then
+    match=$(printf '%s\n' "${THEMES[@]}" | fzf --filter="$q" 2>/dev/null | head -n1 || true)
+  fi
+
+  if [[ -z "$match" ]]; then
+    local nin nt
+    nin=$(printf '%s' "$q" | tr -cd '[:alnum:]')
+    for t in "${THEMES[@]}"; do
+      nt=$(printf '%s' "$t" | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]')
+      if [[ -n "$nin" && "$nt" == *"$nin"* ]]; then match="$t"; break; fi
+    done
+  fi
+
+  [[ -n "$match" ]] && { printf '%s\n' "$match"; return 0; }
+  return 1
+}
+
 THEME="${1:-}"
-if [[ -z "$THEME" && -f "$THEME_FILE" ]]; then
-  THEME=$(tr -d '[:space:]' < "$THEME_FILE")
+if [[ -z "$THEME" ]]; then
+  list_themes
+  exit 0
 fi
 
-if [[ -z "$THEME" ]]; then
-  echo "Usage: set-theme <theme>"
-  echo "Available: catppuccin-mocha, rose-pine, tokyo-night"
+# Fuzzy-resolve the requested name to a canonical theme.
+RESOLVED=$(resolve_input "$THEME") || {
+  echo "No theme matches: $THEME"
+  list_themes
   exit 1
+}
+if [[ "$RESOLVED" != "$THEME" ]]; then
+  echo "Matched \"$THEME\" → $RESOLVED"
 fi
+THEME="$RESOLVED"
 
 # ── Theme definitions ──────────────────────────────────────────────────────────
 # NVIM_*_ENABLED toggles the plugin's enabled field in its respective plugin file.
@@ -54,6 +110,18 @@ case "$THEME" in
     SKETCHYBAR_THEME="rose_pine"
     BTOP_THEME="$HOME/.config/btop/themes/rose_pine.theme"
     ;;
+  rose-pine-moon)
+    KITTY_THEME="Rosé Pine Moon"
+    GHOSTTY_THEME="Rose Pine Moon"
+    NVIM_COLORSCHEME="rose-pine-moon"
+    NVIM_CATPPUCCIN_ENABLED=false
+    NVIM_ROSEPINE_ENABLED=true
+    NVIM_TOKYONIGHT_ENABLED=false
+    OPENCODE_THEME="rosepine-moon"
+    MACWIFI_THEME="rose-pine-moon"
+    SKETCHYBAR_THEME="rose_pine_moon"
+    BTOP_THEME="$HOME/.config/btop/themes/rose_pine_moon.theme"
+    ;;
   tokyo-night)
     KITTY_THEME="Tokyo Night"
     GHOSTTY_THEME="TokyoNight Night"
@@ -66,9 +134,21 @@ case "$THEME" in
     SKETCHYBAR_THEME="tokyo_night"
     BTOP_THEME="$HOME/.config/btop/themes/tokyo_night.theme"
     ;;
+  tokyo-night-storm)
+    KITTY_THEME="Tokyo Night Storm"
+    GHOSTTY_THEME="TokyoNight Storm"
+    NVIM_COLORSCHEME="tokyonight-storm"
+    NVIM_CATPPUCCIN_ENABLED=false
+    NVIM_ROSEPINE_ENABLED=false
+    NVIM_TOKYONIGHT_ENABLED=true
+    OPENCODE_THEME="tokyonight-storm"
+    MACWIFI_THEME="tokyo-night-storm"
+    SKETCHYBAR_THEME="tokyo_night_storm"
+    BTOP_THEME="$HOME/.config/btop/themes/tokyo_night_storm.theme"
+    ;;
   *)
     echo "Unknown theme: $THEME"
-    echo "Available: catppuccin-mocha, rose-pine, tokyo-night"
+    list_themes
     exit 1
     ;;
 esac
