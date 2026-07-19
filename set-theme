@@ -55,16 +55,16 @@ case "$THEME" in
     BTOP_THEME="$HOME/.config/btop/themes/rose_pine.theme"
     ;;
   tokyo-night)
-    KITTY_THEME="Tokyo Night Storm"
-    GHOSTTY_THEME="TokyoNight Storm"
-    NVIM_COLORSCHEME="tokyonight"
+    KITTY_THEME="Tokyo Night"
+    GHOSTTY_THEME="TokyoNight Night"
+    NVIM_COLORSCHEME="tokyonight-night"
     NVIM_CATPPUCCIN_ENABLED=false
     NVIM_ROSEPINE_ENABLED=false
     NVIM_TOKYONIGHT_ENABLED=true
     OPENCODE_THEME="tokyonight"
-    MACWIFI_THEME="tokyo-night-storm"
-    SKETCHYBAR_THEME="tokyo_night_storm"
-    BTOP_THEME="$HOME/.config/btop/themes/tokyo_night_storm.theme"
+    MACWIFI_THEME="tokyo-night"
+    SKETCHYBAR_THEME="tokyo_night"
+    BTOP_THEME="$HOME/.config/btop/themes/tokyo_night.theme"
     ;;
   *)
     echo "Unknown theme: $THEME"
