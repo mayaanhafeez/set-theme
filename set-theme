@@ -99,6 +99,7 @@ case "$THEME" in
     NVIM_CATPPUCCIN_ENABLED=false
     NVIM_ROSEPINE_ENABLED=false
     NVIM_TOKYONIGHT_ENABLED=false
+    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="andromeda"
     MACWIFI_THEME="dracula"
     SKETCHYBAR_THEME="andromeda"
@@ -112,6 +113,7 @@ case "$THEME" in
     NVIM_CATPPUCCIN_ENABLED=true
     NVIM_ROSEPINE_ENABLED=false
     NVIM_TOKYONIGHT_ENABLED=false
+    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="catppuccin"
     MACWIFI_THEME="catppuccin-mocha"
     SKETCHYBAR_THEME="catppuccin_mocha"
@@ -121,14 +123,16 @@ case "$THEME" in
   hinterlands)
     # An Omarchy theme (github.com/OldJobobo/omarchy-hinterlands-theme): monochrome
     # greys with crisp white highlights. Nothing ships it, so the kitty, ghostty,
-    # nvim, opencode, btop and sketchybar themes are all ported from the repo's
-    # colors.toml. macwifi has no monochrome theme; nord is the closest built-in.
+    # opencode, btop and sketchybar themes are all ported from the repo's
+    # colors.toml. nvim uses aether.nvim, the plugin the repo's neovim.lua calls for.
+    # macwifi has no monochrome theme; nord is the closest built-in.
     KITTY_THEME="Hinterlands"
     GHOSTTY_THEME="Hinterlands"
-    NVIM_COLORSCHEME="hinterlands"
+    NVIM_COLORSCHEME="aether"
     NVIM_CATPPUCCIN_ENABLED=false
     NVIM_ROSEPINE_ENABLED=false
     NVIM_TOKYONIGHT_ENABLED=false
+    NVIM_AETHER_ENABLED=true
     OPENCODE_THEME="hinterlands"
     MACWIFI_THEME="nord"
     SKETCHYBAR_THEME="hinterlands"
@@ -146,6 +150,7 @@ case "$THEME" in
     NVIM_CATPPUCCIN_ENABLED=false
     NVIM_ROSEPINE_ENABLED=false
     NVIM_TOKYONIGHT_ENABLED=false
+    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="matte-black"
     MACWIFI_THEME="gruvbox-dark"
     SKETCHYBAR_THEME="matte_black"
@@ -159,6 +164,7 @@ case "$THEME" in
     NVIM_CATPPUCCIN_ENABLED=false
     NVIM_ROSEPINE_ENABLED=true
     NVIM_TOKYONIGHT_ENABLED=false
+    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="rosepine"
     MACWIFI_THEME="rose-pine"
     SKETCHYBAR_THEME="rose_pine"
@@ -172,6 +178,7 @@ case "$THEME" in
     NVIM_CATPPUCCIN_ENABLED=false
     NVIM_ROSEPINE_ENABLED=true
     NVIM_TOKYONIGHT_ENABLED=false
+    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="rosepine-moon"
     MACWIFI_THEME="rose-pine-moon"
     SKETCHYBAR_THEME="rose_pine_moon"
@@ -185,6 +192,7 @@ case "$THEME" in
     NVIM_CATPPUCCIN_ENABLED=false
     NVIM_ROSEPINE_ENABLED=false
     NVIM_TOKYONIGHT_ENABLED=true
+    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="tokyonight"
     MACWIFI_THEME="tokyo-night"
     SKETCHYBAR_THEME="tokyo_night"
@@ -198,6 +206,7 @@ case "$THEME" in
     NVIM_CATPPUCCIN_ENABLED=false
     NVIM_ROSEPINE_ENABLED=false
     NVIM_TOKYONIGHT_ENABLED=true
+    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="tokyonight-storm"
     MACWIFI_THEME="tokyo-night-storm"
     SKETCHYBAR_THEME="tokyo_night_storm"
@@ -215,6 +224,7 @@ case "$THEME" in
     NVIM_CATPPUCCIN_ENABLED=false
     NVIM_ROSEPINE_ENABLED=false
     NVIM_TOKYONIGHT_ENABLED=false
+    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="tomorrow-night-burns"
     MACWIFI_THEME="dracula"
     SKETCHYBAR_THEME="tomorrow_night_burns"
@@ -285,6 +295,11 @@ if $NVIM_TOKYONIGHT_ENABLED; then
   sed -i '' 's/enabled = false,$/enabled = true,/' "$NVIM_PLUGINS/colorscheme-tokyonight.lua"
 else
   sed -i '' 's/enabled = true,$/enabled = false,/' "$NVIM_PLUGINS/colorscheme-tokyonight.lua"
+fi
+if $NVIM_AETHER_ENABLED; then
+  sed -i '' 's/enabled = false,$/enabled = true,/' "$NVIM_PLUGINS/colorscheme-aether.lua"
+else
+  sed -i '' 's/enabled = true,$/enabled = false,/' "$NVIM_PLUGINS/colorscheme-aether.lua"
 fi
 echo "  config updated (restart nvim to apply)"
 
