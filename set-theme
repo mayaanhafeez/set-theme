@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# set-theme — unified theme switcher for kitty, ghostty, nvim, opencode, macwifi, btop, sketchybar
+# set-theme — unified theme switcher for kitty, ghostty, nvim, opencode, macwifi,
+# btop, sketchybar and borders (JankyBorders)
 #
 # Usage:
 #   set-theme <theme>        apply theme and save it (name is fuzzy-matched,
@@ -17,7 +18,7 @@ set -euo pipefail
 THEME_FILE="$HOME/.config/theme"
 
 # Available themes, in display order.
-THEMES=(catppuccin-mocha rose-pine rose-pine-moon tokyo-night tokyo-night-storm tomorrow-night-burns)
+THEMES=(andromeda catppuccin-mocha hinterlands matte-black rose-pine rose-pine-moon tokyo-night tokyo-night-storm tomorrow-night-burns)
 
 list_themes() {
   local current=""
@@ -84,8 +85,26 @@ THEME="$RESOLVED"
 # ── Theme definitions ──────────────────────────────────────────────────────────
 # NVIM_*_ENABLED toggles the plugin's enabled field in its respective plugin file.
 # btop ships no catppuccin/rose-pine themes; closest built-ins are used instead.
+# BORDERS_COLOR is the JankyBorders active-window border, as 0xAARRGGBB.
 
 case "$THEME" in
+  andromeda)
+    # An Omarchy theme (github.com/signaldirective/andromeda): deep blue-grey with
+    # vivid teal/pink/purple accents. Ghostty ships it; the kitty, nvim, opencode,
+    # btop and sketchybar themes are ported from the repo's colors.toml.
+    # macwifi has no matching theme, so its closest built-in is used.
+    KITTY_THEME="Andromeda"
+    GHOSTTY_THEME="Andromeda"
+    NVIM_COLORSCHEME="andromeda"
+    NVIM_CATPPUCCIN_ENABLED=false
+    NVIM_ROSEPINE_ENABLED=false
+    NVIM_TOKYONIGHT_ENABLED=false
+    OPENCODE_THEME="andromeda"
+    MACWIFI_THEME="dracula"
+    SKETCHYBAR_THEME="andromeda"
+    BTOP_THEME="$HOME/.config/btop/themes/andromeda.theme"
+    BORDERS_COLOR="0xff00e8c6"  # teal
+    ;;
   catppuccin-mocha)
     KITTY_THEME="Catppuccin-Mocha"
     GHOSTTY_THEME="Catppuccin Mocha"
@@ -97,6 +116,41 @@ case "$THEME" in
     MACWIFI_THEME="catppuccin-mocha"
     SKETCHYBAR_THEME="catppuccin_mocha"
     BTOP_THEME="$HOME/.config/btop/themes/catppuccin_mocha.theme"
+    BORDERS_COLOR="0xff5fcfc9"  # teal
+    ;;
+  hinterlands)
+    # An Omarchy theme (github.com/OldJobobo/omarchy-hinterlands-theme): monochrome
+    # greys with crisp white highlights. Nothing ships it, so the kitty, ghostty,
+    # nvim, opencode, btop and sketchybar themes are all ported from the repo's
+    # colors.toml. macwifi has no monochrome theme; nord is the closest built-in.
+    KITTY_THEME="Hinterlands"
+    GHOSTTY_THEME="Hinterlands"
+    NVIM_COLORSCHEME="hinterlands"
+    NVIM_CATPPUCCIN_ENABLED=false
+    NVIM_ROSEPINE_ENABLED=false
+    NVIM_TOKYONIGHT_ENABLED=false
+    OPENCODE_THEME="hinterlands"
+    MACWIFI_THEME="nord"
+    SKETCHYBAR_THEME="hinterlands"
+    BTOP_THEME="$HOME/.config/btop/themes/hinterlands.theme"
+    BORDERS_COLOR="0xffb9b9b9"  # light grey
+    ;;
+  matte-black)
+    # An official Omarchy theme (basecamp/omarchy, themes/matte-black): near-black
+    # with amber and burnt-red accents. Ghostty ships it; the kitty, nvim, opencode,
+    # btop and sketchybar themes are ported from the repo's colors.toml.
+    # macwifi has no matching theme, so its closest built-in is used.
+    KITTY_THEME="Matte Black"
+    GHOSTTY_THEME="Matte Black"
+    NVIM_COLORSCHEME="matte-black"
+    NVIM_CATPPUCCIN_ENABLED=false
+    NVIM_ROSEPINE_ENABLED=false
+    NVIM_TOKYONIGHT_ENABLED=false
+    OPENCODE_THEME="matte-black"
+    MACWIFI_THEME="gruvbox-dark"
+    SKETCHYBAR_THEME="matte_black"
+    BTOP_THEME="$HOME/.config/btop/themes/matte_black.theme"
+    BORDERS_COLOR="0xffe68e0d"  # amber
     ;;
   rose-pine)
     KITTY_THEME="Rosé Pine"
@@ -109,6 +163,7 @@ case "$THEME" in
     MACWIFI_THEME="rose-pine"
     SKETCHYBAR_THEME="rose_pine"
     BTOP_THEME="$HOME/.config/btop/themes/rose_pine.theme"
+    BORDERS_COLOR="0xff5fcfc9"  # teal
     ;;
   rose-pine-moon)
     KITTY_THEME="Rosé Pine Moon"
@@ -121,6 +176,7 @@ case "$THEME" in
     MACWIFI_THEME="rose-pine-moon"
     SKETCHYBAR_THEME="rose_pine_moon"
     BTOP_THEME="$HOME/.config/btop/themes/rose_pine_moon.theme"
+    BORDERS_COLOR="0xff5fcfc9"  # teal
     ;;
   tokyo-night)
     KITTY_THEME="Tokyo Night"
@@ -133,6 +189,7 @@ case "$THEME" in
     MACWIFI_THEME="tokyo-night"
     SKETCHYBAR_THEME="tokyo_night"
     BTOP_THEME="$HOME/.config/btop/themes/tokyo_night.theme"
+    BORDERS_COLOR="0xff5fcfc9"  # teal
     ;;
   tokyo-night-storm)
     KITTY_THEME="Tokyo Night Storm"
@@ -145,6 +202,7 @@ case "$THEME" in
     MACWIFI_THEME="tokyo-night-storm"
     SKETCHYBAR_THEME="tokyo_night_storm"
     BTOP_THEME="$HOME/.config/btop/themes/tokyo_night_storm.theme"
+    BORDERS_COLOR="0xff5fcfc9"  # teal
     ;;
   tomorrow-night-burns)
     # A monochromatic dark-red theme. Ghostty ships it and nvim has a local
@@ -161,6 +219,7 @@ case "$THEME" in
     MACWIFI_THEME="dracula"
     SKETCHYBAR_THEME="tomorrow_night_burns"
     BTOP_THEME="$HOME/.config/btop/themes/tomorrow_night_burns.theme"
+    BORDERS_COLOR="0xfffc595f"  # bright red
     ;;
   *)
     echo "Unknown theme: $THEME"
@@ -275,6 +334,22 @@ if [[ -f "$SKETCHYBAR_SETTINGS" ]]; then
   sketchybar --reload 2>/dev/null \
     && echo "  applied" \
     || echo "  config updated (sketchybar not running)"
+fi
+
+# ── Borders (JankyBorders) ─────────────────────────────────────────────────────
+# Only the active-window border is themed; width/style/inactive stay as configured.
+# Re-invoking the borders binary hands the new options to the running instance.
+echo "→ borders"
+BORDERS_CONF="$HOME/.config/borders/bordersrc"
+if [[ -f "$BORDERS_CONF" ]]; then
+  sed -i '' "s/^\([[:space:]]*\)active_color=.*/\1active_color=$BORDERS_COLOR/" "$BORDERS_CONF"
+  if command -v borders >/dev/null 2>&1 && pgrep -x borders >/dev/null 2>&1; then
+    borders active_color="$BORDERS_COLOR" >/dev/null 2>&1 \
+      && echo "  applied" \
+      || echo "  config updated (could not reach borders)"
+  else
+    echo "  config updated (borders not running)"
+  fi
 fi
 
 echo ""
