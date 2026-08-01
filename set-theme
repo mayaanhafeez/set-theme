@@ -18,7 +18,7 @@ set -euo pipefail
 THEME_FILE="$HOME/.config/theme"
 
 # Available themes, in display order.
-THEMES=(andromeda catppuccin-mocha hinterlands matte-black rose-pine rose-pine-moon tokyo-night tokyo-night-storm tomorrow-night-burns)
+THEMES=(andromeda catppuccin-mocha hinterlands matte-black rose-pine rose-pine-moon tokyo-night tokyo-night-storm tomorrow-night-burns vanta-black)
 
 list_themes() {
   local current=""
@@ -230,6 +230,24 @@ case "$THEME" in
     SKETCHYBAR_THEME="tomorrow_night_burns"
     BTOP_THEME="$HOME/.config/btop/themes/tomorrow_night_burns.theme"
     BORDERS_COLOR="0xfffc595f"  # bright red
+    ;;
+  vanta-black)
+    # A pure-black monochrome theme: #000000 background, every accent a grey.
+    # Nothing ships it, so the kitty, ghostty, nvim, opencode, btop and sketchybar
+    # themes are all written from the supplied palette. macwifi has no monochrome
+    # theme; "default" is used since it is the only one that imposes no hue.
+    KITTY_THEME="Vanta Black"
+    GHOSTTY_THEME="Vanta Black"
+    NVIM_COLORSCHEME="vanta-black"
+    NVIM_CATPPUCCIN_ENABLED=false
+    NVIM_ROSEPINE_ENABLED=false
+    NVIM_TOKYONIGHT_ENABLED=false
+    NVIM_AETHER_ENABLED=false
+    OPENCODE_THEME="vanta-black"
+    MACWIFI_THEME="default"
+    SKETCHYBAR_THEME="vanta_black"
+    BTOP_THEME="$HOME/.config/btop/themes/vanta_black.theme"
+    BORDERS_COLOR="0xff8d8d8d"  # accent grey
     ;;
   *)
     echo "Unknown theme: $THEME"
