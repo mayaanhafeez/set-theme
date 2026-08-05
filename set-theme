@@ -83,7 +83,8 @@ fi
 THEME="$RESOLVED"
 
 # ── Theme definitions ──────────────────────────────────────────────────────────
-# NVIM_*_ENABLED toggles the plugin's enabled field in its respective plugin file.
+# NVIM_COLORSCHEME must be a key of `local_themes` in the nvim config's
+# lua/plugins/theme.lua, which is what decides whether a plugin is needed.
 # btop ships no catppuccin/rose-pine themes; closest built-ins are used instead.
 # BORDERS_COLOR is the JankyBorders active-window border, as 0xAARRGGBB.
 
@@ -96,10 +97,6 @@ case "$THEME" in
     KITTY_THEME="Andromeda"
     GHOSTTY_THEME="Andromeda"
     NVIM_COLORSCHEME="andromeda"
-    NVIM_CATPPUCCIN_ENABLED=false
-    NVIM_ROSEPINE_ENABLED=false
-    NVIM_TOKYONIGHT_ENABLED=false
-    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="andromeda"
     MACWIFI_THEME="dracula"
     SKETCHYBAR_THEME="andromeda"
@@ -110,10 +107,6 @@ case "$THEME" in
     KITTY_THEME="Catppuccin-Mocha"
     GHOSTTY_THEME="Catppuccin Mocha"
     NVIM_COLORSCHEME="catppuccin"
-    NVIM_CATPPUCCIN_ENABLED=true
-    NVIM_ROSEPINE_ENABLED=false
-    NVIM_TOKYONIGHT_ENABLED=false
-    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="catppuccin"
     MACWIFI_THEME="catppuccin-mocha"
     SKETCHYBAR_THEME="catppuccin_mocha"
@@ -129,10 +122,6 @@ case "$THEME" in
     KITTY_THEME="Hinterlands"
     GHOSTTY_THEME="Hinterlands"
     NVIM_COLORSCHEME="aether"
-    NVIM_CATPPUCCIN_ENABLED=false
-    NVIM_ROSEPINE_ENABLED=false
-    NVIM_TOKYONIGHT_ENABLED=false
-    NVIM_AETHER_ENABLED=true
     OPENCODE_THEME="hinterlands"
     MACWIFI_THEME="nord"
     SKETCHYBAR_THEME="hinterlands"
@@ -147,10 +136,6 @@ case "$THEME" in
     KITTY_THEME="Matte Black"
     GHOSTTY_THEME="Matte Black"
     NVIM_COLORSCHEME="matte-black"
-    NVIM_CATPPUCCIN_ENABLED=false
-    NVIM_ROSEPINE_ENABLED=false
-    NVIM_TOKYONIGHT_ENABLED=false
-    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="matte-black"
     MACWIFI_THEME="gruvbox-dark"
     SKETCHYBAR_THEME="matte_black"
@@ -161,10 +146,6 @@ case "$THEME" in
     KITTY_THEME="Rosé Pine"
     GHOSTTY_THEME="Rose Pine"
     NVIM_COLORSCHEME="rose-pine"
-    NVIM_CATPPUCCIN_ENABLED=false
-    NVIM_ROSEPINE_ENABLED=true
-    NVIM_TOKYONIGHT_ENABLED=false
-    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="rosepine"
     MACWIFI_THEME="rose-pine"
     SKETCHYBAR_THEME="rose_pine"
@@ -175,10 +156,6 @@ case "$THEME" in
     KITTY_THEME="Rosé Pine Moon"
     GHOSTTY_THEME="Rose Pine Moon"
     NVIM_COLORSCHEME="rose-pine-moon"
-    NVIM_CATPPUCCIN_ENABLED=false
-    NVIM_ROSEPINE_ENABLED=true
-    NVIM_TOKYONIGHT_ENABLED=false
-    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="rosepine-moon"
     MACWIFI_THEME="rose-pine-moon"
     SKETCHYBAR_THEME="rose_pine_moon"
@@ -189,10 +166,6 @@ case "$THEME" in
     KITTY_THEME="Tokyo Night"
     GHOSTTY_THEME="TokyoNight Night"
     NVIM_COLORSCHEME="tokyonight-night"
-    NVIM_CATPPUCCIN_ENABLED=false
-    NVIM_ROSEPINE_ENABLED=false
-    NVIM_TOKYONIGHT_ENABLED=true
-    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="tokyonight"
     MACWIFI_THEME="tokyo-night"
     SKETCHYBAR_THEME="tokyo_night"
@@ -203,10 +176,6 @@ case "$THEME" in
     KITTY_THEME="Tokyo Night Storm"
     GHOSTTY_THEME="TokyoNight Storm"
     NVIM_COLORSCHEME="tokyonight-storm"
-    NVIM_CATPPUCCIN_ENABLED=false
-    NVIM_ROSEPINE_ENABLED=false
-    NVIM_TOKYONIGHT_ENABLED=true
-    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="tokyonight-storm"
     MACWIFI_THEME="tokyo-night-storm"
     SKETCHYBAR_THEME="tokyo_night_storm"
@@ -221,10 +190,6 @@ case "$THEME" in
     KITTY_THEME="Tomorrow Night Burns"
     GHOSTTY_THEME="Tomorrow Night Burns"
     NVIM_COLORSCHEME="tomorrow-night-burns"
-    NVIM_CATPPUCCIN_ENABLED=false
-    NVIM_ROSEPINE_ENABLED=false
-    NVIM_TOKYONIGHT_ENABLED=false
-    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="tomorrow-night-burns"
     MACWIFI_THEME="dracula"
     SKETCHYBAR_THEME="tomorrow_night_burns"
@@ -239,10 +204,6 @@ case "$THEME" in
     KITTY_THEME="Vanta Black"
     GHOSTTY_THEME="Vanta Black"
     NVIM_COLORSCHEME="vanta-black"
-    NVIM_CATPPUCCIN_ENABLED=false
-    NVIM_ROSEPINE_ENABLED=false
-    NVIM_TOKYONIGHT_ENABLED=false
-    NVIM_AETHER_ENABLED=false
     OPENCODE_THEME="vanta-black"
     MACWIFI_THEME="default"
     SKETCHYBAR_THEME="vanta_black"
@@ -293,33 +254,24 @@ if [[ -f "$GHOSTTY_CONF" ]]; then
 fi
 
 # ── Nvim ───────────────────────────────────────────────────────────────────────
-# Updates the active colorscheme and toggles each theme plugin's enabled field.
+# The nvim config picks its colorscheme the way Omarchy does: on an Omarchy box
+# lua/plugins/theme.lua loads whatever ~/.local/state/omarchy/current/theme
+# holds, and `omarchy theme set` owns the choice. Off Omarchy that file falls
+# back to its own FALLBACK constant, which is what set-theme rewrites here.
+# Plugin installs follow from the name, so there is nothing to enable/disable.
 # Requires nvim restart to take effect.
 echo "→ nvim"
-NVIM_PLUGINS="$HOME/.config/nvim/lua/plugins"
-sed -i '' "s/colorscheme = \".*\"/colorscheme = \"$NVIM_COLORSCHEME\"/" \
-  "$NVIM_PLUGINS/colorscheme.lua"
-if $NVIM_CATPPUCCIN_ENABLED; then
-  sed -i '' 's/enabled = false,$/enabled = true,/' "$NVIM_PLUGINS/colorscheme-catppuccin.lua"
+NVIM_THEME_FILE="$HOME/.config/nvim/lua/plugins/theme.lua"
+if [[ -f "$NVIM_THEME_FILE" ]]; then
+  if grep -q "^local FALLBACK = " "$NVIM_THEME_FILE"; then
+    sed -i '' "s/^local FALLBACK = \".*\"/local FALLBACK = \"$NVIM_COLORSCHEME\"/" "$NVIM_THEME_FILE"
+    echo "  config updated (restart nvim to apply)"
+  else
+    echo "  skipped (no FALLBACK constant in theme.lua)"
+  fi
 else
-  sed -i '' 's/enabled = true,$/enabled = false,/' "$NVIM_PLUGINS/colorscheme-catppuccin.lua"
+  echo "  skipped (theme.lua not found)"
 fi
-if $NVIM_ROSEPINE_ENABLED; then
-  sed -i '' 's/enabled = false,$/enabled = true,/' "$NVIM_PLUGINS/colorscheme-rose-pine.lua"
-else
-  sed -i '' 's/enabled = true,$/enabled = false,/' "$NVIM_PLUGINS/colorscheme-rose-pine.lua"
-fi
-if $NVIM_TOKYONIGHT_ENABLED; then
-  sed -i '' 's/enabled = false,$/enabled = true,/' "$NVIM_PLUGINS/colorscheme-tokyonight.lua"
-else
-  sed -i '' 's/enabled = true,$/enabled = false,/' "$NVIM_PLUGINS/colorscheme-tokyonight.lua"
-fi
-if $NVIM_AETHER_ENABLED; then
-  sed -i '' 's/enabled = false,$/enabled = true,/' "$NVIM_PLUGINS/colorscheme-aether.lua"
-else
-  sed -i '' 's/enabled = true,$/enabled = false,/' "$NVIM_PLUGINS/colorscheme-aether.lua"
-fi
-echo "  config updated (restart nvim to apply)"
 
 # ── Opencode ───────────────────────────────────────────────────────────────────
 echo "→ opencode"
