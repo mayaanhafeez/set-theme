@@ -255,8 +255,8 @@ fi
 
 # ── Nvim ───────────────────────────────────────────────────────────────────────
 # The nvim config picks its colorscheme the way Omarchy does: on an Omarchy box
-# lua/plugins/theme.lua loads whatever ~/.local/state/omarchy/current/theme
-# holds, and `omarchy theme set` owns the choice. Off Omarchy that file falls
+# lua/plugins/theme.lua loads whatever Omarchy's current-theme directory holds,
+# and `omarchy theme set` owns the choice. Off Omarchy that file falls
 # back to its own FALLBACK constant, which is what set-theme rewrites here.
 # Plugin installs follow from the name, so there is nothing to enable/disable.
 # Requires nvim restart to take effect.
