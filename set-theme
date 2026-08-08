@@ -293,20 +293,25 @@ else
 fi
 
 # ── Opencode ───────────────────────────────────────────────────────────────────
+# OpenCode reads the TUI theme from tui.json. Its TUI loads that setting at startup.
 echo "→ opencode"
-OPENCODE_CONF="$HOME/.config/opencode/opencode.jsonc"
-if [[ -f "$OPENCODE_CONF" ]]; then
+OPENCODE_CONF="$HOME/.config/opencode/tui.json"
+mkdir -p "$(dirname "$OPENCODE_CONF")"
+if command -v python3 >/dev/null 2>&1; then
   python3 - "$OPENCODE_CONF" "$OPENCODE_THEME" <<'PYEOF'
-import json, sys
+import json, os, sys
 path, theme = sys.argv[1], sys.argv[2]
-with open(path) as f:
-    c = json.load(f)
+if os.path.exists(path):
+    with open(path) as f:
+        c = json.load(f)
+else:
+    c = {"$schema": "https://opencode.ai/tui.json"}
 c['theme'] = theme
 with open(path, 'w') as f:
     json.dump(c, f, indent=2)
     f.write('\n')
 PYEOF
-  echo "  updated"
+  echo "  config updated (restart opencode to apply)"
 fi
 
 # ── Macwifi ────────────────────────────────────────────────────────────────────
@@ -322,12 +327,14 @@ if [[ -f "$MACWIFI_CONF" ]]; then
 fi
 
 # ── Btop ───────────────────────────────────────────────────────────────────────
-# Requires btop restart to apply. Community themes live in ~/.config/btop/themes/.
+# SIGUSR2 reloads btop's config file. Community themes live in ~/.config/btop/themes/.
 echo "→ btop"
 BTOP_CONF="$HOME/.config/btop/btop.conf"
 if [[ -f "$BTOP_CONF" ]]; then
   sed -i '' "s|^color_theme = .*|color_theme = \"$BTOP_THEME\"|" "$BTOP_CONF"
-  echo "  config updated (restart btop to apply)"
+  pkill -SIGUSR2 btop 2>/dev/null \
+    && echo "  applied" \
+    || echo "  config updated (btop not running)"
 fi
 
 # ── SketchyBar ─────────────────────────────────────────────────────────────────
