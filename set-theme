@@ -5,6 +5,7 @@
 # Usage:
 #   set-theme <theme>        apply theme and save it (name is fuzzy-matched,
 #                            e.g. "catppuccin", "rosepine", or a typo all resolve)
+#   set-theme demo           cycle through every theme, pausing after each applies
 #   set-theme                list available themes (marks the active one)
 #
 # Active theme is persisted in ~/.config/theme.
@@ -19,6 +20,7 @@ THEME_FILE="$HOME/.config/theme"
 
 # Available themes, in display order.
 THEMES=(andromeda catppuccin-mocha hinterlands matte-black rose-pine rose-pine-moon tokyo-night tokyo-night-storm tomorrow-night-burns vanta-black)
+DEMO_DELAY=5
 
 list_themes() {
   local current=""
@@ -71,6 +73,23 @@ if [[ -z "$THEME" ]]; then
   exit 0
 fi
 
+if [[ "$THEME" == "demo" ]]; then
+  ORIGINAL_THEME=""
+  [[ -f "$THEME_FILE" ]] && ORIGINAL_THEME=$(tr -d '[:space:]' < "$THEME_FILE")
+
+  for theme in "${THEMES[@]}"; do
+    "$0" "$theme"
+    echo "Showing $theme for ${DEMO_DELAY}s..."
+    sleep "$DEMO_DELAY"
+  done
+
+  if [[ -n "$ORIGINAL_THEME" ]]; then
+    "$0" "$ORIGINAL_THEME"
+    echo "Restored theme: $ORIGINAL_THEME"
+  fi
+  exit 0
+fi
+
 # Fuzzy-resolve the requested name to a canonical theme.
 RESOLVED=$(resolve_input "$THEME") || {
   echo "No theme matches: $THEME"
@@ -111,7 +130,7 @@ case "$THEME" in
     MACWIFI_THEME="catppuccin-mocha"
     SKETCHYBAR_THEME="catppuccin_mocha"
     BTOP_THEME="$HOME/.config/btop/themes/catppuccin_mocha.theme"
-    BORDERS_COLOR="0xff5fcfc9"  # teal
+    BORDERS_COLOR="0xff89b4fa"  # blue
     ;;
   hinterlands)
     # An Omarchy theme (github.com/OldJobobo/omarchy-hinterlands-theme): monochrome
@@ -170,7 +189,7 @@ case "$THEME" in
     MACWIFI_THEME="tokyo-night"
     SKETCHYBAR_THEME="tokyo_night"
     BTOP_THEME="$HOME/.config/btop/themes/tokyo_night.theme"
-    BORDERS_COLOR="0xff5fcfc9"  # teal
+    BORDERS_COLOR="0xff7aa2f7"  # blue
     ;;
   tokyo-night-storm)
     KITTY_THEME="Tokyo Night Storm"
