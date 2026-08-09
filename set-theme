@@ -277,14 +277,36 @@ fi
 # lua/plugins/theme.lua loads whatever Omarchy's current-theme directory holds,
 # and `omarchy theme set` owns the choice. Off Omarchy that file falls
 # back to its own FALLBACK constant, which is what set-theme rewrites here.
-# Plugin installs follow from the name, so there is nothing to enable/disable.
-# Requires nvim restart to take effect.
+# Live instances are updated through their local RPC sockets.
 echo "→ nvim"
 NVIM_THEME_FILE="$HOME/.config/nvim/lua/plugins/theme.lua"
 if [[ -f "$NVIM_THEME_FILE" ]]; then
   if grep -q "^local FALLBACK = " "$NVIM_THEME_FILE"; then
     sed -i '' "s/^local FALLBACK = \".*\"/local FALLBACK = \"$NVIM_COLORSCHEME\"/" "$NVIM_THEME_FILE"
-    echo "  config updated (restart nvim to apply)"
+    NVIM_PLUGIN=""
+    case "$NVIM_COLORSCHEME" in
+      rose-pine|rose-pine-moon) NVIM_PLUGIN="rose-pine" ;;
+      tokyonight-night|tokyonight-storm) NVIM_PLUGIN="tokyonight.nvim" ;;
+      catppuccin) NVIM_PLUGIN="catppuccin" ;;
+      aether) NVIM_PLUGIN="aether.nvim" ;;
+    esac
+
+    NVIM_APPLIED=false
+    NVIM_RUNTIME_DIR="${XDG_RUNTIME_DIR:-${TMPDIR%/}}"
+    for NVIM_SERVER in "$NVIM_RUNTIME_DIR"/nvim."$USER"/*/nvim.*; do
+      [[ -S "$NVIM_SERVER" ]] || continue
+      if nvim --server "$NVIM_SERVER" --remote-expr \
+        'luaeval("(function() if _A[1] ~= \"\" then require(\"lazy\").load({plugins = {_A[1]}}) end; vim.cmd.colorscheme(_A[2]); return vim.g.colors_name end)()", ["'"$NVIM_PLUGIN"'", "'"$NVIM_COLORSCHEME"'"])' \
+        >/dev/null 2>&1; then
+        NVIM_APPLIED=true
+      fi
+    done
+
+    if [[ "$NVIM_APPLIED" == true ]]; then
+      echo "  applied"
+    else
+      echo "  config updated (restart nvim to apply)"
+    fi
   else
     echo "  skipped (no FALLBACK constant in theme.lua)"
   fi
@@ -293,25 +315,26 @@ else
 fi
 
 # ── Opencode ───────────────────────────────────────────────────────────────────
-# OpenCode reads the TUI theme from tui.json. Its TUI loads that setting at startup.
+# OpenCode's system theme uses terminal ANSI colors, so terminal palette changes
+# update the running TUI. The TUI itself must restart once to pick this setting up.
 echo "→ opencode"
 OPENCODE_CONF="$HOME/.config/opencode/tui.json"
 mkdir -p "$(dirname "$OPENCODE_CONF")"
 if command -v python3 >/dev/null 2>&1; then
-  python3 - "$OPENCODE_CONF" "$OPENCODE_THEME" <<'PYEOF'
+  python3 - "$OPENCODE_CONF" <<'PYEOF'
 import json, os, sys
-path, theme = sys.argv[1], sys.argv[2]
+path = sys.argv[1]
 if os.path.exists(path):
     with open(path) as f:
         c = json.load(f)
 else:
     c = {"$schema": "https://opencode.ai/tui.json"}
-c['theme'] = theme
+c['theme'] = 'system'
 with open(path, 'w') as f:
     json.dump(c, f, indent=2)
     f.write('\n')
 PYEOF
-  echo "  config updated (restart opencode to apply)"
+  echo "  configured system theme (restart opencode once to apply)"
 fi
 
 # ── Macwifi ────────────────────────────────────────────────────────────────────
