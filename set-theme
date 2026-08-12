@@ -77,6 +77,10 @@ if [[ "$THEME" == "demo" ]]; then
   ORIGINAL_THEME=""
   [[ -f "$THEME_FILE" ]] && ORIGINAL_THEME=$(tr -d '[:space:]' < "$THEME_FILE")
 
+  # Remember the current wallpaper so the demo's random picks can be undone.
+  ORIGINAL_WALLPAPER=$(osascript -e \
+    'tell application "System Events" to tell current desktop to get picture' 2>/dev/null || true)
+
   for theme in "${THEMES[@]}"; do
     "$0" "$theme"
     echo "Showing $theme for ${DEMO_DELAY}s..."
@@ -86,6 +90,26 @@ if [[ "$THEME" == "demo" ]]; then
   if [[ -n "$ORIGINAL_THEME" ]]; then
     "$0" "$ORIGINAL_THEME"
     echo "Restored theme: $ORIGINAL_THEME"
+  fi
+
+  # Undo the wallpaper the restored theme just picked at random. macOS applies
+  # wallpaper changes asynchronously, so back-to-back sets can settle out of
+  # order — wait for the last one to land, then set and verify, retrying.
+  if [[ -n "$ORIGINAL_WALLPAPER" && -f "$ORIGINAL_WALLPAPER" ]] \
+    && command -v set-wallpaper >/dev/null 2>&1; then
+    sleep 2
+    for _ in 1 2 3; do
+      set-wallpaper "$ORIGINAL_WALLPAPER" >/dev/null 2>&1 || true
+      sleep 2
+      CURRENT_WALLPAPER=$(osascript -e \
+        'tell application "System Events" to tell current desktop to get picture' 2>/dev/null || true)
+      [[ "$CURRENT_WALLPAPER" == "$ORIGINAL_WALLPAPER" ]] && break
+    done
+    if [[ "${CURRENT_WALLPAPER:-}" == "$ORIGINAL_WALLPAPER" ]]; then
+      echo "Restored wallpaper: ${ORIGINAL_WALLPAPER##*/}"
+    else
+      echo "Could not restore wallpaper: ${ORIGINAL_WALLPAPER##*/}"
+    fi
   fi
   exit 0
 fi
@@ -383,6 +407,35 @@ if [[ -f "$BORDERS_CONF" ]]; then
       || echo "  config updated (could not reach borders)"
   else
     echo "  config updated (borders not running)"
+  fi
+fi
+
+# ── Wallpaper ──────────────────────────────────────────────────────────────────
+# Each theme has a matching wallpaper set in ~/Pictures/wallpapers/<theme>/.
+# One is picked at random and handed to the set-wallpaper script.
+echo "→ wallpaper"
+WALLPAPER_DIR="$HOME/Pictures/wallpapers/$THEME"
+if ! command -v set-wallpaper >/dev/null 2>&1; then
+  echo "  skipped (set-wallpaper not found)"
+elif [[ ! -d "$WALLPAPER_DIR" ]]; then
+  echo "  skipped (no wallpapers for $THEME)"
+else
+  WALLPAPERS=()
+  while IFS= read -r -d '' f; do
+    WALLPAPERS+=("$f")
+  done < <(find "$WALLPAPER_DIR" -maxdepth 1 -type f \
+    \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.heic' \
+       -o -iname '*.tif' -o -iname '*.tiff' -o -iname '*.gif' \) -print0)
+
+  if [[ ${#WALLPAPERS[@]} -eq 0 ]]; then
+    echo "  skipped (no images in $WALLPAPER_DIR)"
+  else
+    WALLPAPER="${WALLPAPERS[RANDOM % ${#WALLPAPERS[@]}]}"
+    if set-wallpaper "$WALLPAPER" >/dev/null 2>&1; then
+      echo "  applied ${WALLPAPER##*/}"
+    else
+      echo "  failed to set ${WALLPAPER##*/}"
+    fi
   fi
 fi
 
