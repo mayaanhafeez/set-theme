@@ -19,7 +19,7 @@ set -euo pipefail
 THEME_FILE="$HOME/.config/theme"
 
 # Available themes, in display order.
-THEMES=(andromeda catppuccin-mocha hinterlands matte-black rose-pine rose-pine-moon tokyo-night tokyo-night-storm tomorrow-night-burns vanta-black)
+THEMES=(andromeda catppuccin-mocha hinterlands kanagawa matte-black nord osaka-jade retro-82 ristretto rose-pine rose-pine-moon tokyo-night tokyo-night-storm tomorrow-night-burns vanta-black)
 DEMO_DELAY=5
 
 list_themes() {
@@ -171,6 +171,16 @@ case "$THEME" in
     BTOP_THEME="$HOME/.config/btop/themes/hinterlands.theme"
     BORDERS_COLOR="0xffb9b9b9"  # light grey
     ;;
+  kanagawa)
+    KITTY_THEME="Kanagawa Wave"
+    GHOSTTY_THEME="Kanagawa Wave"
+    NVIM_COLORSCHEME="kanagawa"
+    OPENCODE_THEME="kanagawa"
+    MACWIFI_THEME="gruvbox-dark"
+    SKETCHYBAR_THEME="kanagawa"
+    BTOP_THEME="$HOME/.config/btop/themes/kanagawa.theme"
+    BORDERS_COLOR="0xffdcd7ba"
+    ;;
   matte-black)
     # An official Omarchy theme (basecamp/omarchy, themes/matte-black): near-black
     # with amber and burnt-red accents. Ghostty ships it; the kitty, nvim, opencode,
@@ -184,6 +194,46 @@ case "$THEME" in
     SKETCHYBAR_THEME="matte_black"
     BTOP_THEME="$HOME/.config/btop/themes/matte_black.theme"
     BORDERS_COLOR="0xffe68e0d"  # amber
+    ;;
+  nord)
+    KITTY_THEME="Nord"
+    GHOSTTY_THEME="Nord"
+    NVIM_COLORSCHEME="nordfox"
+    OPENCODE_THEME="nord"
+    MACWIFI_THEME="nord"
+    SKETCHYBAR_THEME="nord"
+    BTOP_THEME="$HOME/.config/btop/themes/nord.theme"
+    BORDERS_COLOR="0xff81a1c1"
+    ;;
+  osaka-jade)
+    KITTY_THEME="Osaka Jade"
+    GHOSTTY_THEME="Osaka Jade"
+    NVIM_COLORSCHEME="bamboo"
+    OPENCODE_THEME="osaka-jade"
+    MACWIFI_THEME="gruvbox-dark"
+    SKETCHYBAR_THEME="osaka_jade"
+    BTOP_THEME="$HOME/.config/btop/themes/osaka_jade.theme"
+    BORDERS_COLOR="0xff509475"
+    ;;
+  retro-82)
+    KITTY_THEME="Retro 82"
+    GHOSTTY_THEME="Retro 82"
+    NVIM_COLORSCHEME="retro-82"
+    OPENCODE_THEME="retro-82"
+    MACWIFI_THEME="gruvbox-dark"
+    SKETCHYBAR_THEME="retro_82"
+    BTOP_THEME="$HOME/.config/btop/themes/retro_82.theme"
+    BORDERS_COLOR="0xfffaa968"
+    ;;
+  ristretto)
+    KITTY_THEME="Ristretto"
+    GHOSTTY_THEME="Ristretto"
+    NVIM_COLORSCHEME="ristretto"
+    OPENCODE_THEME="ristretto"
+    MACWIFI_THEME="rose-pine"
+    SKETCHYBAR_THEME="ristretto"
+    BTOP_THEME="$HOME/.config/btop/themes/ristretto.theme"
+    BORDERS_COLOR="0xfff38d70"
     ;;
   rose-pine)
     KITTY_THEME="Rosé Pine"
@@ -313,6 +363,10 @@ if [[ -f "$NVIM_THEME_FILE" ]]; then
       tokyonight-night|tokyonight-storm) NVIM_PLUGIN="tokyonight.nvim" ;;
       catppuccin) NVIM_PLUGIN="catppuccin" ;;
       aether) NVIM_PLUGIN="aether.nvim" ;;
+      kanagawa) NVIM_PLUGIN="kanagawa.nvim" ;;
+      nordfox) NVIM_PLUGIN="nightfox.nvim" ;;
+      bamboo) NVIM_PLUGIN="bamboo.nvim" ;;
+      retro-82) NVIM_PLUGIN="retro-82.nvim" ;;
     esac
 
     NVIM_APPLIED=false
