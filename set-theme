@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# set-theme — unified theme switcher for kitty, ghostty, nvim, opencode, macwifi,
-# btop, sketchybar and borders (JankyBorders)
+# set-theme — unified theme switcher for kitty, ghostty, tmux, herdr, nvim,
+# opencode, macwifi, btop, sketchybar and borders (JankyBorders)
 #
 # Usage:
 #   set-theme <theme>        apply theme and save it (name is fuzzy-matched,
@@ -139,6 +139,7 @@ case "$THEME" in
     # macwifi has no matching theme, so its closest built-in is used.
     KITTY_THEME="Andromeda"
     GHOSTTY_THEME="Andromeda"
+    HERDR_THEME="one-dark"
     NVIM_COLORSCHEME="andromeda"
     OPENCODE_THEME="andromeda"
     MACWIFI_THEME="dracula"
@@ -149,6 +150,7 @@ case "$THEME" in
   catppuccin-mocha)
     KITTY_THEME="Catppuccin-Mocha"
     GHOSTTY_THEME="Catppuccin Mocha"
+    HERDR_THEME="catppuccin"
     NVIM_COLORSCHEME="catppuccin"
     OPENCODE_THEME="catppuccin"
     MACWIFI_THEME="catppuccin-mocha"
@@ -164,6 +166,7 @@ case "$THEME" in
     # macwifi has no monochrome theme; nord is the closest built-in.
     KITTY_THEME="Hinterlands"
     GHOSTTY_THEME="Hinterlands"
+    HERDR_THEME="terminal"
     NVIM_COLORSCHEME="aether"
     OPENCODE_THEME="hinterlands"
     MACWIFI_THEME="nord"
@@ -174,6 +177,7 @@ case "$THEME" in
   kanagawa)
     KITTY_THEME="Kanagawa Wave"
     GHOSTTY_THEME="Kanagawa Wave"
+    HERDR_THEME="kanagawa"
     NVIM_COLORSCHEME="kanagawa"
     OPENCODE_THEME="kanagawa"
     MACWIFI_THEME="gruvbox-dark"
@@ -188,6 +192,7 @@ case "$THEME" in
     # macwifi has no matching theme, so its closest built-in is used.
     KITTY_THEME="Matte Black"
     GHOSTTY_THEME="Matte Black"
+    HERDR_THEME="vesper"
     NVIM_COLORSCHEME="matte-black"
     OPENCODE_THEME="matte-black"
     MACWIFI_THEME="gruvbox-dark"
@@ -198,6 +203,7 @@ case "$THEME" in
   nord)
     KITTY_THEME="Nord"
     GHOSTTY_THEME="Nord"
+    HERDR_THEME="nord"
     NVIM_COLORSCHEME="nordfox"
     OPENCODE_THEME="nord"
     MACWIFI_THEME="nord"
@@ -208,6 +214,7 @@ case "$THEME" in
   osaka-jade)
     KITTY_THEME="Osaka Jade"
     GHOSTTY_THEME="Osaka Jade"
+    HERDR_THEME="kanagawa"
     NVIM_COLORSCHEME="bamboo"
     OPENCODE_THEME="osaka-jade"
     MACWIFI_THEME="gruvbox-dark"
@@ -218,6 +225,7 @@ case "$THEME" in
   retro-82)
     KITTY_THEME="Retro 82"
     GHOSTTY_THEME="Retro 82"
+    HERDR_THEME="solarized"
     NVIM_COLORSCHEME="retro-82"
     OPENCODE_THEME="retro-82"
     MACWIFI_THEME="gruvbox-dark"
@@ -228,6 +236,7 @@ case "$THEME" in
   ristretto)
     KITTY_THEME="Ristretto"
     GHOSTTY_THEME="Ristretto"
+    HERDR_THEME="rose-pine"
     NVIM_COLORSCHEME="ristretto"
     OPENCODE_THEME="ristretto"
     MACWIFI_THEME="rose-pine"
@@ -238,6 +247,7 @@ case "$THEME" in
   rose-pine)
     KITTY_THEME="Rosé Pine"
     GHOSTTY_THEME="Rose Pine"
+    HERDR_THEME="rose-pine"
     NVIM_COLORSCHEME="rose-pine"
     OPENCODE_THEME="rosepine"
     MACWIFI_THEME="rose-pine"
@@ -248,6 +258,7 @@ case "$THEME" in
   rose-pine-moon)
     KITTY_THEME="Rosé Pine Moon"
     GHOSTTY_THEME="Rose Pine Moon"
+    HERDR_THEME="rose-pine"
     NVIM_COLORSCHEME="rose-pine-moon"
     OPENCODE_THEME="rosepine-moon"
     MACWIFI_THEME="rose-pine-moon"
@@ -258,6 +269,7 @@ case "$THEME" in
   tokyo-night)
     KITTY_THEME="Tokyo Night"
     GHOSTTY_THEME="TokyoNight Night"
+    HERDR_THEME="tokyo-night"
     NVIM_COLORSCHEME="tokyonight-night"
     OPENCODE_THEME="tokyonight"
     MACWIFI_THEME="tokyo-night"
@@ -268,6 +280,7 @@ case "$THEME" in
   tokyo-night-storm)
     KITTY_THEME="Tokyo Night Storm"
     GHOSTTY_THEME="TokyoNight Storm"
+    HERDR_THEME="tokyo-night"
     NVIM_COLORSCHEME="tokyonight-storm"
     OPENCODE_THEME="tokyonight-storm"
     MACWIFI_THEME="tokyo-night-storm"
@@ -282,6 +295,7 @@ case "$THEME" in
     # so its closest built-in is used.
     KITTY_THEME="Tomorrow Night Burns"
     GHOSTTY_THEME="Tomorrow Night Burns"
+    HERDR_THEME="dracula"
     NVIM_COLORSCHEME="tomorrow-night-burns"
     OPENCODE_THEME="tomorrow-night-burns"
     MACWIFI_THEME="dracula"
@@ -296,6 +310,7 @@ case "$THEME" in
     # theme; "default" is used since it is the only one that imposes no hue.
     KITTY_THEME="Vanta Black"
     GHOSTTY_THEME="Vanta Black"
+    HERDR_THEME="terminal"
     NVIM_COLORSCHEME="vanta-black"
     OPENCODE_THEME="vanta-black"
     MACWIFI_THEME="default"
@@ -325,6 +340,62 @@ if kitty +kitten themes --dump-theme "$KITTY_THEME" > "$KITTY_THEME_CONF" 2>/dev
     || echo "  config updated (kitty not running)"
 else
   echo "  theme not found: $KITTY_THEME"
+fi
+
+# ── Tmux ───────────────────────────────────────────────────────────────────────
+# Tmux uses the terminal's ANSI palette, matching Omarchy's status bar styling.
+echo "→ tmux"
+TMUX_THEME_CONF="$HOME/.tmux-theme.conf"
+cat > "$TMUX_THEME_CONF" <<'EOF'
+set -g status-style "bg=default,fg=default"
+set -g status-left "#[fg=black,bg=blue,bold] #S #[bg=default] "
+set -g status-right "#[fg=blue]#{?pane_in_mode,COPY ,}#{?client_prefix,PREFIX ,}#{?window_zoomed_flag,ZOOM ,}#[fg=brightblack]#h "
+set -g window-status-format "#[fg=brightblack] #I:#W "
+set -g window-status-current-format "#[fg=blue,bold] #I:#W "
+set -g pane-border-style "fg=brightblack"
+set -g pane-active-border-style "fg=blue"
+set -g message-style "bg=default,fg=blue"
+set -g message-command-style "bg=default,fg=blue"
+set -g mode-style "bg=blue,fg=black"
+setw -g clock-mode-colour blue
+EOF
+if tmux has-session 2>/dev/null; then
+  tmux source-file "$TMUX_THEME_CONF" \
+    && echo "  applied" \
+    || echo "  config updated (could not reload tmux)"
+else
+  echo "  config updated (tmux not running)"
+fi
+
+# ── Herdr ──────────────────────────────────────────────────────────────────────
+echo "→ herdr"
+HERDR_CONF="${HERDR_CONFIG_PATH:-$HOME/.config/herdr/config.toml}"
+if [[ -f "$HERDR_CONF" ]]; then
+  awk -v theme="$HERDR_THEME" '
+    BEGIN { in_theme = 0; updated = 0 }
+    /^\[theme\][[:space:]]*$/ { in_theme = 1; print; next }
+    /^\[/ {
+      if (in_theme && !updated) { print "name = \"" theme "\""; updated = 1 }
+      in_theme = 0
+    }
+    in_theme && /^[[:space:]]*name[[:space:]]*=/ {
+      print "name = \"" theme "\""
+      updated = 1
+      next
+    }
+    { print }
+    END { if (in_theme && !updated) print "name = \"" theme "\"" }
+  ' "$HERDR_CONF" > "$HERDR_CONF.tmp"
+  mv "$HERDR_CONF.tmp" "$HERDR_CONF"
+  if command -v herdr >/dev/null 2>&1 && herdr config check >/dev/null 2>&1; then
+    herdr server reload-config >/dev/null 2>&1 \
+      && echo "  applied" \
+      || echo "  config updated (herdr not running)"
+  else
+    echo "  config updated"
+  fi
+else
+  echo "  skipped (config.toml not found)"
 fi
 
 # ── Ghostty ────────────────────────────────────────────────────────────────────
