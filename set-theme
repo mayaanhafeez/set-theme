@@ -68,6 +68,7 @@ resolve_input() {
 }
 
 THEME="${1:-}"
+IS_DEMO="${IS_DEMO:-false}"
 if [[ -z "$THEME" ]]; then
   list_themes
   exit 0
@@ -82,13 +83,13 @@ if [[ "$THEME" == "demo" ]]; then
     'tell application "System Events" to tell current desktop to get picture' 2>/dev/null || true)
 
   for theme in "${THEMES[@]}"; do
-    "$0" "$theme"
+    IS_DEMO=true "$0" "$theme"
     echo "Showing $theme for ${DEMO_DELAY}s..."
     sleep "$DEMO_DELAY"
   done
 
   if [[ -n "$ORIGINAL_THEME" ]]; then
-    "$0" "$ORIGINAL_THEME"
+    IS_DEMO=true "$0" "$ORIGINAL_THEME"
     echo "Restored theme: $ORIGINAL_THEME"
   fi
 
@@ -124,7 +125,9 @@ if [[ "$RESOLVED" != "$THEME" ]]; then
   echo "Matched \"$THEME\" → $RESOLVED"
 fi
 THEME="$RESOLVED"
-
+if [[ "$IS_DEMO" != true ]]; then
+  echo "$THEME" > "$HOME/set-theme/current_theme"
+fi
 # ── Theme definitions ──────────────────────────────────────────────────────────
 # NVIM_COLORSCHEME must be a key of `local_themes` in the nvim config's
 # lua/plugins/theme.lua, which is what decides whether a plugin is needed.
