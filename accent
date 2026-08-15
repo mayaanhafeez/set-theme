@@ -1,0 +1,34 @@
+#!/bin/bash
+# accent — usage: ./accent orange
+set -euo pipefail
+
+case "${1:-}" in
+  multicolor) IDX="";  HL="" ;;
+  blue)       IDX=4;   HL="0.698039 0.843137 1.000000 Blue" ;;
+  purple)     IDX=5;   HL="0.968627 0.831373 1.000000 Purple" ;;
+  pink)       IDX=6;   HL="1.000000 0.749020 0.823529 Pink" ;;
+  red)        IDX=0;   HL="1.000000 0.733333 0.721569 Red" ;;
+  orange)     IDX=1;   HL="1.000000 0.874510 0.701961 Orange" ;;
+  yellow)     IDX=2;   HL="1.000000 0.937255 0.690196 Yellow" ;;
+  green)      IDX=3;   HL="0.752941 0.964706 0.678431 Green" ;;
+  graphite)   IDX=-1;  HL="0.847059 0.847059 0.862745 Graphite" ;;
+  *) echo "usage: $0 {multicolor|blue|purple|pink|red|orange|yellow|green|graphite}" >&2; exit 1 ;;
+esac
+
+if [ -z "$IDX" ]; then
+  defaults delete -g AppleAccentColor    2>/dev/null || true
+  defaults delete -g AppleHighlightColor 2>/dev/null || true
+else
+  defaults write -g AppleAccentColor -int "$IDX"
+  defaults write -g AppleHighlightColor -string "$HL"
+fi
+
+[ "$1" = graphite ] && V=6 || V=1
+defaults write -g AppleAquaColorVariant -int "$V"
+
+osascript <<'EOF'
+use framework "Foundation"
+set nc to current application's NSDistributedNotificationCenter's defaultCenter()
+nc's postNotificationName:"AppleColorPreferencesChangedNotification" object:"AppleAccentColor" userInfo:(missing value) deliverImmediately:true
+nc's postNotificationName:"AppleAquaColorVariantChanged" object:(missing value) userInfo:(missing value) deliverImmediately:true
+EOF
