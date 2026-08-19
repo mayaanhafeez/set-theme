@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # set-theme — unified theme switcher for kitty, ghostty, tmux, herdr, nvim,
-# opencode, macwifi, btop, sketchybar, borders (JankyBorders), the macOS accent
-# color and the desktop wallpaper
+# opencode, macwifi, openlogi, btop, sketchybar, borders (JankyBorders), the
+# macOS accent color and the desktop wallpaper
 #
 # Usage:
 #   set-theme <theme>        apply theme and save it (name is fuzzy-matched,
@@ -29,7 +29,7 @@ done
 SCRIPT_DIR=$(cd "$(dirname "$SELF")" && pwd)
 
 # Available themes, in display order.
-THEMES=(andromeda catppuccin-mocha hinterlands kanagawa matte-black nord osaka-jade retro-82 ristretto rose-pine rose-pine-moon tokyo-night tokyo-night-storm tomorrow-night-burns vanta-black)
+THEMES=(andromeda catppuccin-mocha drive hinterlands kanagawa matte-black nord osaka-jade retro-82 ristretto rose-pine rose-pine-moon tokyo-night tokyo-night-storm tomorrow-night-burns vanta-black)
 DEMO_DELAY=5
 
 list_themes() {
@@ -142,6 +142,8 @@ fi
 # NVIM_COLORSCHEME must be a key of `local_themes` in the nvim config's
 # lua/plugins/theme.lua, which is what decides whether a plugin is needed.
 # btop ships no catppuccin/rose-pine themes; closest built-ins are used instead.
+# OPENLOGI_THEME must be one of OpenLogi's 40 built-in themes, by display name;
+# custom themes are not supported, so most themes map to the nearest built-in.
 # BORDERS_COLOR is the JankyBorders active-window border, as 0xAARRGGBB.
 
 case "$THEME" in
@@ -156,6 +158,7 @@ case "$THEME" in
     NVIM_COLORSCHEME="andromeda"
     OPENCODE_THEME="andromeda"
     MACWIFI_THEME="dracula"
+    OPENLOGI_THEME="Asciinema"
     SKETCHYBAR_THEME="andromeda"
     BTOP_THEME="$HOME/.config/btop/themes/andromeda.theme"
     BORDERS_COLOR="0xff00e8c6"  # teal
@@ -168,10 +171,32 @@ case "$THEME" in
     NVIM_COLORSCHEME="catppuccin"
     OPENCODE_THEME="catppuccin"
     MACWIFI_THEME="catppuccin-mocha"
+    OPENLOGI_THEME="Catppuccin Mocha"
     SKETCHYBAR_THEME="catppuccin_mocha"
     BTOP_THEME="$HOME/.config/btop/themes/catppuccin_mocha.theme"
     BORDERS_COLOR="0xff89b4fa"  # blue
     ACCENT_COLOR="blue"              # blue
+    ;;
+  drive)
+    # An Omarchy theme (Aether-generated "drive"): soft sage and khaki on a deep
+    # forest ground. Nothing ships it, so the kitty, ghostty, nvim, opencode, btop
+    # and sketchybar themes are all ported from the repo's colors.toml — the
+    # repo's neovim.lua calls for aether.nvim, but that plugin entry is already
+    # spoken for by hinterlands (theme.lua keys on the colorscheme name), so nvim
+    # gets a self-contained colors/drive.lua instead.
+    # herdr's "terminal" theme rides the terminal palette, which is drive's own.
+    # macwifi has no green theme; gruvbox-dark is the closest built-in.
+    KITTY_THEME="Drive"
+    GHOSTTY_THEME="Drive"
+    HERDR_THEME="terminal"
+    NVIM_COLORSCHEME="drive"
+    OPENCODE_THEME="drive"
+    MACWIFI_THEME="gruvbox-dark"
+    OPENLOGI_THEME="Kibble"
+    SKETCHYBAR_THEME="drive"
+    BTOP_THEME="$HOME/.config/btop/themes/drive.theme"
+    BORDERS_COLOR="0xff8dbc94"  # sage (the palette accent)
+    ACCENT_COLOR="green"             # sage green
     ;;
   hinterlands)
     # An Omarchy theme (github.com/OldJobobo/omarchy-hinterlands-theme): monochrome
@@ -185,6 +210,7 @@ case "$THEME" in
     NVIM_COLORSCHEME="aether"
     OPENCODE_THEME="hinterlands"
     MACWIFI_THEME="nord"
+    OPENLOGI_THEME="Alduin"
     SKETCHYBAR_THEME="hinterlands"
     BTOP_THEME="$HOME/.config/btop/themes/hinterlands.theme"
     BORDERS_COLOR="0xffb9b9b9"  # light grey
@@ -197,6 +223,7 @@ case "$THEME" in
     NVIM_COLORSCHEME="kanagawa"
     OPENCODE_THEME="kanagawa"
     MACWIFI_THEME="gruvbox-dark"
+    OPENLOGI_THEME="Gruvbox Dark"
     SKETCHYBAR_THEME="kanagawa"
     BTOP_THEME="$HOME/.config/btop/themes/kanagawa.theme"
     BORDERS_COLOR="0xffdcd7ba"
@@ -213,6 +240,7 @@ case "$THEME" in
     NVIM_COLORSCHEME="matte-black"
     OPENCODE_THEME="matte-black"
     MACWIFI_THEME="gruvbox-dark"
+    OPENLOGI_THEME="Twilight"
     SKETCHYBAR_THEME="matte_black"
     BTOP_THEME="$HOME/.config/btop/themes/matte_black.theme"
     BORDERS_COLOR="0xffe68e0d"  # amber
@@ -225,6 +253,7 @@ case "$THEME" in
     NVIM_COLORSCHEME="nordfox"
     OPENCODE_THEME="nord"
     MACWIFI_THEME="nord"
+    OPENLOGI_THEME="Catppuccin Frappe"
     SKETCHYBAR_THEME="nord"
     BTOP_THEME="$HOME/.config/btop/themes/nord.theme"
     BORDERS_COLOR="0xff81a1c1"
@@ -237,6 +266,7 @@ case "$THEME" in
     NVIM_COLORSCHEME="bamboo"
     OPENCODE_THEME="osaka-jade"
     MACWIFI_THEME="gruvbox-dark"
+    OPENLOGI_THEME="Flexoki Dark"
     SKETCHYBAR_THEME="osaka_jade"
     BTOP_THEME="$HOME/.config/btop/themes/osaka_jade.theme"
     BORDERS_COLOR="0xff509475"
@@ -249,6 +279,7 @@ case "$THEME" in
     NVIM_COLORSCHEME="retro-82"
     OPENCODE_THEME="retro-82"
     MACWIFI_THEME="gruvbox-dark"
+    OPENLOGI_THEME="Everforest Dark"
     SKETCHYBAR_THEME="retro_82"
     BTOP_THEME="$HOME/.config/btop/themes/retro_82.theme"
     BORDERS_COLOR="0xfffaa968"
@@ -261,6 +292,7 @@ case "$THEME" in
     NVIM_COLORSCHEME="ristretto"
     OPENCODE_THEME="ristretto"
     MACWIFI_THEME="rose-pine"
+    OPENLOGI_THEME="Everforest Dark"
     SKETCHYBAR_THEME="ristretto"
     BTOP_THEME="$HOME/.config/btop/themes/ristretto.theme"
     BORDERS_COLOR="0xfff38d70"
@@ -273,6 +305,7 @@ case "$THEME" in
     NVIM_COLORSCHEME="rose-pine"
     OPENCODE_THEME="rosepine"
     MACWIFI_THEME="rose-pine"
+    OPENLOGI_THEME="Spaceduck"
     SKETCHYBAR_THEME="rose_pine"
     BTOP_THEME="$HOME/.config/btop/themes/rose_pine.theme"
     BORDERS_COLOR="0xff5fcfc9"  # teal
@@ -285,6 +318,7 @@ case "$THEME" in
     NVIM_COLORSCHEME="rose-pine-moon"
     OPENCODE_THEME="rosepine-moon"
     MACWIFI_THEME="rose-pine-moon"
+    OPENLOGI_THEME="Tokyo Moon"
     SKETCHYBAR_THEME="rose_pine_moon"
     BTOP_THEME="$HOME/.config/btop/themes/rose_pine_moon.theme"
     BORDERS_COLOR="0xff5fcfc9"  # teal
@@ -297,6 +331,7 @@ case "$THEME" in
     NVIM_COLORSCHEME="tokyonight-night"
     OPENCODE_THEME="tokyonight"
     MACWIFI_THEME="tokyo-night"
+    OPENLOGI_THEME="Tokyo Night"
     SKETCHYBAR_THEME="tokyo_night"
     BTOP_THEME="$HOME/.config/btop/themes/tokyo_night.theme"
     BORDERS_COLOR="0xff7aa2f7"  # blue
@@ -309,6 +344,7 @@ case "$THEME" in
     NVIM_COLORSCHEME="tokyonight-storm"
     OPENCODE_THEME="tokyonight-storm"
     MACWIFI_THEME="tokyo-night-storm"
+    OPENLOGI_THEME="Tokyo Storm"
     SKETCHYBAR_THEME="tokyo_night_storm"
     BTOP_THEME="$HOME/.config/btop/themes/tokyo_night_storm.theme"
     BORDERS_COLOR="0xff5fcfc9"  # teal
@@ -325,6 +361,7 @@ case "$THEME" in
     NVIM_COLORSCHEME="tomorrow-night-burns"
     OPENCODE_THEME="tomorrow-night-burns"
     MACWIFI_THEME="dracula"
+    OPENLOGI_THEME="Fahrenheit"
     SKETCHYBAR_THEME="tomorrow_night_burns"
     BTOP_THEME="$HOME/.config/btop/themes/tomorrow_night_burns.theme"
     BORDERS_COLOR="0xfffc595f"  # bright red
@@ -341,6 +378,7 @@ case "$THEME" in
     NVIM_COLORSCHEME="vanta-black"
     OPENCODE_THEME="vanta-black"
     MACWIFI_THEME="default"
+    OPENLOGI_THEME="Default Dark"
     SKETCHYBAR_THEME="vanta_black"
     BTOP_THEME="$HOME/.config/btop/themes/vanta_black.theme"
     BORDERS_COLOR="0xff8d8d8d"  # accent grey
@@ -534,6 +572,47 @@ if [[ -f "$MACWIFI_CONF" ]]; then
     echo "theme = \"$MACWIFI_THEME\"" >> "$MACWIFI_CONF"
   fi
   echo "  updated"
+fi
+
+# ── OpenLogi ───────────────────────────────────────────────────────────────────
+# OpenLogi picks its UI theme by display name from 40 themes baked into the app
+# binary; it has no custom-theme file to drop in, so each theme maps to the
+# nearest built-in. Only theme_dark is set — every theme here is dark, so the
+# app's light-mode theme and its appearance setting are left as configured.
+# The app reads config.toml at launch and rewrites the whole file when it saves
+# a setting, so it must be restarted to pick this up, and a setting changed in
+# a running OpenLogi can overwrite this edit.
+echo "→ openlogi"
+OPENLOGI_CONF="$HOME/.config/openlogi/config.toml"
+if [[ -f "$OPENLOGI_CONF" ]]; then
+  if grep -q '^theme_dark = ' "$OPENLOGI_CONF"; then
+    sed -i '' "s/^theme_dark = .*/theme_dark = \"$OPENLOGI_THEME\"/" "$OPENLOGI_CONF"
+  elif grep -q '^\[app_settings\]' "$OPENLOGI_CONF"; then
+    # Add the key inside [app_settings]; appending to the file would land it in
+    # whichever table happens to come last. cat back over the original rather
+    # than mv so the config keeps its 0600 permissions.
+    awk -v theme="$OPENLOGI_THEME" '
+      BEGIN { in_app = 0; added = 0 }
+      /^\[app_settings\][[:space:]]*$/ { in_app = 1; print; next }
+      /^\[/ {
+        if (in_app && !added) { print "theme_dark = \"" theme "\""; added = 1 }
+        in_app = 0
+      }
+      { print }
+      END { if (in_app && !added) print "theme_dark = \"" theme "\"" }
+    ' "$OPENLOGI_CONF" > "$OPENLOGI_CONF.tmp"
+    cat "$OPENLOGI_CONF.tmp" > "$OPENLOGI_CONF"
+    rm -f "$OPENLOGI_CONF.tmp"
+  else
+    printf '\n[app_settings]\ntheme_dark = "%s"\n' "$OPENLOGI_THEME" >> "$OPENLOGI_CONF"
+  fi
+  if pgrep -x openlogi-gui >/dev/null 2>&1; then
+    echo "  config updated (quit and reopen OpenLogi to apply)"
+  else
+    echo "  config updated"
+  fi
+else
+  echo "  skipped (config.toml not found)"
 fi
 
 # ── Btop ───────────────────────────────────────────────────────────────────────
