@@ -1,0 +1,162 @@
+#!/usr/bin/env bash
+# Queue or apply Chrome's native custom-color theme without closing Chrome.
+set -euo pipefail
+
+CHROME_ROOT="${CHROME_ROOT:-$HOME/Library/Application Support/Google/Chrome}"
+CHROME_PROCESS_PATTERN="${CHROME_PROCESS_PATTERN:-/Google Chrome\.app/Contents/}"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/set-theme"
+PENDING_FILE="$STATE_DIR/chrome-theme.pending"
+WATCHER_PID_FILE="$STATE_DIR/chrome-theme-watcher.pid"
+WATCHER_LABEL="local.set-theme.chrome-theme"
+
+chrome_running() {
+  pgrep -f "$CHROME_PROCESS_PATTERN" >/dev/null 2>&1
+}
+
+apply_pending() {
+  [[ -f "$PENDING_FILE" ]] || return 0
+  local color updated
+  color=$(tr -d '[:space:]' < "$PENDING_FILE")
+  updated=$(python3 - "$CHROME_ROOT" "$color" <<'PYEOF'
+import json
+import os
+import stat
+import sys
+
+root, hex_color = sys.argv[1:]
+argb = int("ff" + hex_color.lstrip("#"), 16)
+if argb >= 1 << 31:
+    argb -= 1 << 32
+
+updated = 0
+for entry in os.scandir(root):
+    if not entry.is_dir() or entry.name in {"System Profile", "Guest Profile"}:
+        continue
+    path = os.path.join(entry.path, "Preferences")
+    if not os.path.isfile(path):
+        continue
+    try:
+        with open(path, encoding="utf-8") as f:
+            prefs = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        continue
+
+    theme = prefs.setdefault("browser", {}).setdefault("theme", {})
+    theme.update({
+        # Chrome 132+ reads the *2 preferences. Keep the original names in sync
+        # as well so the theme survives upgrades and preference migration.
+        "color_scheme": 2,
+        "color_scheme2": 2,
+        "color_variant": 1,
+        "color_variant2": 1,
+        "user_color": argb,
+        "user_color2": argb,
+        "follows_system_colors": False,
+        "is_grayscale": False,
+        "is_grayscale2": False,
+    })
+    prefs.setdefault("extensions", {}).setdefault("theme", {})["id"] = "user_color_theme_id"
+
+    # Keep the signed-in account preference aligned so Theme Sync does not
+    # immediately replace the local generated-color theme on startup.
+    account_theme = prefs.setdefault("account_values", {}).setdefault("browser", {}).setdefault("theme", {})
+    account_theme.update({
+        "color_scheme": 2,
+        "color_variant": 1,
+        "user_color": argb,
+    })
+
+    mode = stat.S_IMODE(os.stat(path).st_mode)
+    tmp = path + ".set-theme.tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(prefs, f, separators=(",", ":"))
+        f.flush()
+        os.fsync(f.fileno())
+    os.chmod(tmp, mode)
+    os.replace(tmp, path)
+    updated += 1
+
+print(updated)
+PYEOF
+)
+
+  # Do not erase a newer queued color that arrived while the profiles were
+  # being updated.
+  if [[ "$(tr -d '[:space:]' < "$PENDING_FILE" 2>/dev/null || true)" == "$color" ]]; then
+    rm -f "$PENDING_FILE"
+  fi
+  printf '%s\n' "$updated"
+}
+
+watch_for_exit() {
+  trap 'rm -f "$WATCHER_PID_FILE"' EXIT
+  while chrome_running; do sleep 1; done
+  # Chrome helpers can outlive the main window briefly and flush Preferences
+  # on their way out. Require a second clean check before applying.
+  sleep 2
+  while chrome_running; do
+    while chrome_running; do sleep 1; done
+    sleep 2
+  done
+  apply_pending >/dev/null
+  # `launchctl submit` jobs are kept alive by default. Unload this one after
+  # the queued update so it does not restart as an idle watcher.
+  launchctl remove "$WATCHER_LABEL" >/dev/null 2>&1 || true
+}
+
+start_watcher() {
+  local old_pid=""
+  # A submitted launchd job survives the terminal/shell that ran set-theme.
+  # Replace any older watcher; the pending file always contains the newest
+  # requested color, so canceling an old watcher cannot lose a theme change.
+  if command -v launchctl >/dev/null 2>&1; then
+    launchctl remove "$WATCHER_LABEL" >/dev/null 2>&1 || true
+    if launchctl submit -l "$WATCHER_LABEL" -- /usr/bin/env \
+      "HOME=$HOME" \
+      "XDG_STATE_HOME=${XDG_STATE_HOME:-$HOME/.local/state}" \
+      "CHROME_ROOT=$CHROME_ROOT" \
+      "CHROME_PROCESS_PATTERN=$CHROME_PROCESS_PATTERN" \
+      "$0" --watch >/dev/null 2>&1; then
+      return
+    fi
+  fi
+
+  # Portable fallback for non-macOS Chromium setups.
+  [[ -f "$WATCHER_PID_FILE" ]] && old_pid=$(tr -d '[:space:]' < "$WATCHER_PID_FILE")
+  if [[ "$old_pid" =~ ^[0-9]+$ ]] && kill -0 "$old_pid" 2>/dev/null; then
+    return
+  fi
+  nohup "$0" --watch >/dev/null 2>&1 &
+  printf '%s\n' "$!" > "$WATCHER_PID_FILE"
+}
+
+if [[ "${1:-}" == "--watch" ]]; then
+  watch_for_exit
+  exit 0
+fi
+
+COLOR="${1:-}"
+if [[ ! "$COLOR" =~ ^#[0-9A-Fa-f]{6}$ ]]; then
+  echo "usage: $0 '#rrggbb'" >&2
+  exit 1
+fi
+if [[ ! -d "$CHROME_ROOT" ]]; then
+  echo "skipped (Google Chrome profile not found)"
+  exit 0
+fi
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "skipped (python3 not found)"
+  exit 0
+fi
+
+mkdir -p "$STATE_DIR"
+printf '%s\n' "${COLOR,,}" > "$PENDING_FILE.tmp"
+mv "$PENDING_FILE.tmp" "$PENDING_FILE"
+
+if chrome_running; then
+  start_watcher
+  echo "queued ${COLOR,,} (will apply after Chrome fully exits; reopen Chrome normally)"
+else
+  UPDATED=$(apply_pending)
+  echo "configured ${COLOR,,} for $UPDATED profile(s) (next Chrome launch will use it)"
+fi

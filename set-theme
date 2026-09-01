@@ -29,7 +29,7 @@ done
 SCRIPT_DIR=$(cd "$(dirname "$SELF")" && pwd)
 
 # Available themes, in display order.
-THEMES=(andromeda catppuccin-mocha drive hinterlands kanagawa matte-black nord osaka-jade retro-82 ristretto rose-pine rose-pine-moon tokyo-night tokyo-night-storm tomorrow-night-burns vanta-black)
+THEMES=(andromeda archriot blueridge-dark catppuccin-mocha dark-xp drive hinterlands kanagawa matte-black nord osaka-jade retro-82 ristretto rose-pine rose-pine-moon tokyo-night tokyo-night-storm tomorrow-night-burns vanta-black)
 DEMO_DELAY=5
 
 list_themes() {
@@ -142,8 +142,8 @@ fi
 # NVIM_COLORSCHEME must be a key of `local_themes` in the nvim config's
 # lua/plugins/theme.lua, which is what decides whether a plugin is needed.
 # btop ships no catppuccin/rose-pine themes; closest built-ins are used instead.
-# OPENLOGI_THEME must be one of OpenLogi's 40 built-in themes, by display name;
-# custom themes are not supported, so most themes map to the nearest built-in.
+# OPENLOGI_THEME is an OpenLogi theme display name. User theme JSON files live
+# under ~/.config/openlogi/themes; Drive is installed there from this repo.
 # BORDERS_COLOR is the JankyBorders active-window border, as 0xAARRGGBB.
 
 case "$THEME" in
@@ -164,6 +164,48 @@ case "$THEME" in
     BORDERS_COLOR="0xff00e8c6"  # teal
     ACCENT_COLOR="blue"              # deep blue base
     ;;
+  archriot)
+    # An Omarchy theme (github.com/cyphrriot/omarchy-archriot-theme): sleek dark
+    # with modern purple and blue accents, Tokyo Night inspired. The palette is
+    # Tokyo Night's (same #1a1b26 ground), so kitty maps to the Tokyo Night
+    # built-in and ghostty to its TokyoNight Night built-in; nvim uses the
+    # tokyonight-night colorscheme the repo's neovim.lua calls for. The kitty
+    # and ghostty themes are also installed as named custom themes under
+    # ~/.config/{kitty,ghostty}/themes, and the opencode, openlogi, btop and
+    # sketchybar themes are ported from the repo's colors.
+    # herdr and macwifi have no matching theme; the closest built-ins are used.
+    KITTY_THEME="ArchRiot"
+    GHOSTTY_THEME="ArchRiot"
+    HERDR_THEME="tokyo-night"
+    NVIM_COLORSCHEME="tokyonight-night"
+    OPENCODE_THEME="archriot"
+    MACWIFI_THEME="tokyo-night"
+    OPENLOGI_THEME="ArchRiot"
+    SKETCHYBAR_THEME="archriot"
+    BTOP_THEME="$HOME/.config/btop/themes/archriot.theme"
+    BORDERS_COLOR="0xffbb9af7"  # purple
+    ACCENT_COLOR="purple"            # purple
+    ;;
+  blueridge-dark)
+    # An Omarchy theme (omarchy-blueridge-dark-theme): a moderately dark mountain
+    # palette with turquoise patina, jade, and temple gold. Nothing ships it, so
+    # the kitty, ghostty, nvim, opencode, openlogi, btop and sketchybar themes are
+    # all ported from the repo's palette. nvim gets a self-contained
+    # colors/blueridge-dark.lua (like the other custom themes), the colorscheme
+    # the repo's neovim.lua defines in place.
+    # herdr and macwifi have no matching theme; the closest built-ins are used.
+    KITTY_THEME="BlueRidge Dark"
+    GHOSTTY_THEME="BlueRidge Dark"
+    HERDR_THEME="kanagawa"
+    NVIM_COLORSCHEME="blueridge-dark"
+    OPENCODE_THEME="blueridge-dark"
+    MACWIFI_THEME="gruvbox-dark"
+    OPENLOGI_THEME="BlueRidge Dark"
+    SKETCHYBAR_THEME="blueridge_dark"
+    BTOP_THEME="$HOME/.config/btop/themes/blueridge_dark.theme"
+    BORDERS_COLOR="0xff7ec8c8"  # turquoise patina
+    ACCENT_COLOR="green"             # jade green
+    ;;
   catppuccin-mocha)
     KITTY_THEME="Catppuccin-Mocha"
     GHOSTTY_THEME="Catppuccin Mocha"
@@ -176,6 +218,26 @@ case "$THEME" in
     BTOP_THEME="$HOME/.config/btop/themes/catppuccin_mocha.theme"
     BORDERS_COLOR="0xff89b4fa"  # blue
     ACCENT_COLOR="blue"              # blue
+    ;;
+  dark-xp)
+    # An Omarchy theme (ITSZXY/dark-xp-omarchy): a classic Windows XP-inspired
+    # dark, near-black navy with deep blue accents. Nothing ships it, so the
+    # kitty, ghostty, opencode, openlogi, btop and sketchybar themes are all
+    # ported from the repo's palette (the alacritty.toml / kitty.conf colors).
+    # nvim uses the ANSI-only pixel.nvim colorscheme the repo's neovim.lua calls
+    # for, which adapts to the terminal palette set-theme already applies.
+    # herdr and macwifi have no matching theme; the closest built-ins are used.
+    KITTY_THEME="Dark XP"
+    GHOSTTY_THEME="Dark XP"
+    HERDR_THEME="tokyo-night"
+    NVIM_COLORSCHEME="pixel"
+    OPENCODE_THEME="dark-xp"
+    MACWIFI_THEME="tokyo-night"
+    OPENLOGI_THEME="Dark XP"
+    SKETCHYBAR_THEME="dark_xp"
+    BTOP_THEME="$HOME/.config/btop/themes/dark_xp.theme"
+    BORDERS_COLOR="0xff2e5995"  # bright blue accent
+    ACCENT_COLOR="blue"              # XP blue
     ;;
   drive)
     # An Omarchy theme (Aether-generated "drive"): soft sage and khaki on a deep
@@ -192,7 +254,7 @@ case "$THEME" in
     NVIM_COLORSCHEME="drive"
     OPENCODE_THEME="drive"
     MACWIFI_THEME="gruvbox-dark"
-    OPENLOGI_THEME="Kibble"
+    OPENLOGI_THEME="Drive"
     SKETCHYBAR_THEME="drive"
     BTOP_THEME="$HOME/.config/btop/themes/drive.theme"
     BORDERS_COLOR="0xff8dbc94"  # sage (the palette accent)
@@ -438,12 +500,15 @@ echo "→ herdr"
 HERDR_CONF="${HERDR_CONFIG_PATH:-$HOME/.config/herdr/config.toml}"
 if [[ -f "$HERDR_CONF" ]]; then
   awk -v theme="$HERDR_THEME" '
-    BEGIN { in_theme = 0; updated = 0 }
+    BEGIN { in_theme = 0; in_custom = 0; updated = 0 }
     /^\[theme\][[:space:]]*$/ { in_theme = 1; print; next }
+    /^\[theme\.custom\][[:space:]]*$/ { in_theme = 0; in_custom = 1; next }
     /^\[/ {
+      if (in_custom) in_custom = 0
       if (in_theme && !updated) { print "name = \"" theme "\""; updated = 1 }
       in_theme = 0
     }
+    in_custom { next }
     in_theme && /^[[:space:]]*name[[:space:]]*=/ {
       print "name = \"" theme "\""
       updated = 1
@@ -453,7 +518,7 @@ if [[ -f "$HERDR_CONF" ]]; then
     END { if (in_theme && !updated) print "name = \"" theme "\"" }
   ' "$HERDR_CONF" > "$HERDR_CONF.tmp"
   mv "$HERDR_CONF.tmp" "$HERDR_CONF"
-  if command -v herdr >/dev/null 2>&1 && herdr config check >/dev/null 2>&1; then
+  if command -v herdr >/dev/null 2>&1; then
     herdr server reload-config >/dev/null 2>&1 \
       && echo "  applied" \
       || echo "  config updated (herdr not running)"
@@ -514,6 +579,7 @@ if [[ -f "$NVIM_THEME_FILE" ]]; then
       nordfox) NVIM_PLUGIN="nightfox.nvim" ;;
       bamboo) NVIM_PLUGIN="bamboo.nvim" ;;
       retro-82) NVIM_PLUGIN="retro-82.nvim" ;;
+      pixel) NVIM_PLUGIN="pixel.nvim" ;;
     esac
 
     NVIM_APPLIED=false
@@ -574,15 +640,42 @@ if [[ -f "$MACWIFI_CONF" ]]; then
   echo "  updated"
 fi
 
+# ── Google Chrome ─────────────────────────────────────────────────────────────
+# Chrome cannot reload its browser chrome from an external script. Queue its
+# native custom-color theme while Chrome is open; the sibling helper waits for
+# every Chrome process to exit, writes the latest queued color, and leaves
+# relaunch timing entirely to the user. If Chrome is closed, it applies now.
+echo "→ chrome"
+CHROME_THEME_SCRIPT="$SCRIPT_DIR/chrome-theme"
+if [[ ! -x "$CHROME_THEME_SCRIPT" ]]; then
+  echo "  skipped (chrome-theme helper not found)"
+else
+  CHROME_ACCENT="#${BORDERS_COLOR:4}"
+  echo "  $($CHROME_THEME_SCRIPT "$CHROME_ACCENT")"
+fi
+
 # ── OpenLogi ───────────────────────────────────────────────────────────────────
-# OpenLogi picks its UI theme by display name from 40 themes baked into the app
-# binary; it has no custom-theme file to drop in, so each theme maps to the
-# nearest built-in. Only theme_dark is set — every theme here is dark, so the
-# app's light-mode theme and its appearance setting are left as configured.
+# OpenLogi picks its UI theme by display name. Only theme_dark is set — every
+# theme here is dark, so the app's light-mode theme and appearance setting are
+# left as configured. Install theme files owned by this switcher before editing
+# the config; OpenLogi discovers them on its next launch.
 # The app reads config.toml at launch and rewrites the whole file when it saves
 # a setting, so it must be restarted to pick this up, and a setting changed in
 # a running OpenLogi can overwrite this edit.
 echo "→ openlogi"
+# Install the custom theme JSON owned by this switcher (Drive, ArchRiot and
+# BlueRidge Dark each live as a file under openlogi/). All others map to a
+# built-in OpenLogi theme by display name, so no file is dropped in.
+case "$THEME" in
+  drive|archriot|blueridge-dark|dark-xp)
+    if [[ -f "$SCRIPT_DIR/openlogi/$THEME.json" ]]; then
+      for profile in openlogi openlogi-dev; do
+        mkdir -p "$HOME/.config/$profile/themes"
+        cp "$SCRIPT_DIR/openlogi/$THEME.json" "$HOME/.config/$profile/themes/$THEME.json"
+      done
+    fi
+    ;;
+esac
 OPENLOGI_CONF="$HOME/.config/openlogi/config.toml"
 if [[ -f "$OPENLOGI_CONF" ]]; then
   if grep -q '^theme_dark = ' "$OPENLOGI_CONF"; then
