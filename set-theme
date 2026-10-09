@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # set-theme — unified theme switcher for kitty, ghostty, tmux, herdr, nvim,
-# opencode, macwifi, openlogi, btop, sketchybar, borders (JankyBorders), the
-# macOS appearance/accent color and the desktop wallpaper
+# opencode (TUI and desktop app), macwifi, chrome, openlogi, btop, sketchybar,
+# borders (JankyBorders), the macOS appearance/accent color and the wallpaper
 #
 # Usage:
 #   set-theme <theme>        apply theme and save it (name is fuzzy-matched,
@@ -147,6 +147,8 @@ fi
 # OPENLOGI_THEME is an OpenLogi theme display name. User theme JSON files live
 # under ~/.config/openlogi/themes; Drive is installed there from this repo.
 # BORDERS_COLOR is the JankyBorders active-window border, as 0xAARRGGBB.
+# OPENCODE_DESKTOP_THEME must be a theme id bundled with the OpenCode desktop
+# app, which cannot load custom themes; each theme maps to the closest one.
 
 APPEARANCE="dark"
 
@@ -161,6 +163,7 @@ case "$THEME" in
     HERDR_THEME="one-dark"
     NVIM_COLORSCHEME="andromeda"
     OPENCODE_THEME="andromeda"
+    OPENCODE_DESKTOP_THEME="palenight"
     MACWIFI_THEME="dracula"
     OPENLOGI_THEME="Asciinema"
     SKETCHYBAR_THEME="andromeda"
@@ -183,6 +186,7 @@ case "$THEME" in
     HERDR_THEME="tokyo-night"
     NVIM_COLORSCHEME="tokyonight-night"
     OPENCODE_THEME="archriot"
+    OPENCODE_DESKTOP_THEME="tokyonight"
     MACWIFI_THEME="tokyo-night"
     OPENLOGI_THEME="ArchRiot"
     SKETCHYBAR_THEME="archriot"
@@ -203,6 +207,7 @@ case "$THEME" in
     HERDR_THEME="kanagawa"
     NVIM_COLORSCHEME="blueridge-dark"
     OPENCODE_THEME="blueridge-dark"
+    OPENCODE_DESKTOP_THEME="ayu"
     MACWIFI_THEME="gruvbox-dark"
     OPENLOGI_THEME="BlueRidge Dark"
     SKETCHYBAR_THEME="blueridge_dark"
@@ -216,6 +221,7 @@ case "$THEME" in
     HERDR_THEME="catppuccin"
     NVIM_COLORSCHEME="catppuccin"
     OPENCODE_THEME="catppuccin"
+    OPENCODE_DESKTOP_THEME="catppuccin"
     MACWIFI_THEME="catppuccin-mocha"
     OPENLOGI_THEME="Catppuccin Mocha"
     SKETCHYBAR_THEME="catppuccin_mocha"
@@ -236,6 +242,7 @@ case "$THEME" in
     HERDR_THEME="tokyo-night"
     NVIM_COLORSCHEME="pixel"
     OPENCODE_THEME="dark-xp"
+    OPENCODE_DESKTOP_THEME="github"
     MACWIFI_THEME="tokyo-night"
     OPENLOGI_THEME="Dark XP"
     SKETCHYBAR_THEME="dark_xp"
@@ -257,6 +264,7 @@ case "$THEME" in
     HERDR_THEME="terminal"
     NVIM_COLORSCHEME="drive"
     OPENCODE_THEME="drive"
+    OPENCODE_DESKTOP_THEME="everforest"
     MACWIFI_THEME="gruvbox-dark"
     OPENLOGI_THEME="Drive"
     SKETCHYBAR_THEME="drive"
@@ -275,6 +283,7 @@ case "$THEME" in
     HERDR_THEME="terminal"
     NVIM_COLORSCHEME="aether"
     OPENCODE_THEME="hinterlands"
+    OPENCODE_DESKTOP_THEME="carbonfox"
     MACWIFI_THEME="nord"
     OPENLOGI_THEME="Alduin"
     SKETCHYBAR_THEME="hinterlands"
@@ -288,6 +297,7 @@ case "$THEME" in
     HERDR_THEME="kanagawa"
     NVIM_COLORSCHEME="kanagawa"
     OPENCODE_THEME="kanagawa"
+    OPENCODE_DESKTOP_THEME="kanagawa"
     MACWIFI_THEME="gruvbox-dark"
     OPENLOGI_THEME="Gruvbox Dark"
     SKETCHYBAR_THEME="kanagawa"
@@ -304,6 +314,7 @@ case "$THEME" in
     HERDR_THEME="catppuccin"
     NVIM_COLORSCHEME="aether"
     OPENCODE_THEME="kitsune"
+    OPENCODE_DESKTOP_THEME="rosepine"
     MACWIFI_THEME="catppuccin-mocha"
     OPENLOGI_THEME="Kitsune"
     SKETCHYBAR_THEME="kitsune"
@@ -320,6 +331,7 @@ case "$THEME" in
     HERDR_THEME="terminal"
     NVIM_COLORSCHEME="aether"
     OPENCODE_THEME="last-horizon"
+    OPENCODE_DESKTOP_THEME="mercury"
     MACWIFI_THEME="rose-pine"
     OPENLOGI_THEME="Last Horizon"
     SKETCHYBAR_THEME="last_horizon"
@@ -337,6 +349,7 @@ case "$THEME" in
     HERDR_THEME="vesper"
     NVIM_COLORSCHEME="matte-black"
     OPENCODE_THEME="matte-black"
+    OPENCODE_DESKTOP_THEME="vesper"
     MACWIFI_THEME="gruvbox-dark"
     OPENLOGI_THEME="Twilight"
     SKETCHYBAR_THEME="matte_black"
@@ -350,6 +363,7 @@ case "$THEME" in
     HERDR_THEME="nord"
     NVIM_COLORSCHEME="nordfox"
     OPENCODE_THEME="nord"
+    OPENCODE_DESKTOP_THEME="nord"
     MACWIFI_THEME="nord"
     OPENLOGI_THEME="Catppuccin Frappe"
     SKETCHYBAR_THEME="nord"
@@ -363,6 +377,7 @@ case "$THEME" in
     HERDR_THEME="kanagawa"
     NVIM_COLORSCHEME="bamboo"
     OPENCODE_THEME="osaka-jade"
+    OPENCODE_DESKTOP_THEME="osaka-jade"
     MACWIFI_THEME="gruvbox-dark"
     OPENLOGI_THEME="Flexoki Dark"
     SKETCHYBAR_THEME="osaka_jade"
@@ -376,6 +391,7 @@ case "$THEME" in
     HERDR_THEME="solarized"
     NVIM_COLORSCHEME="retro-82"
     OPENCODE_THEME="retro-82"
+    OPENCODE_DESKTOP_THEME="synthwave84"
     MACWIFI_THEME="gruvbox-dark"
     OPENLOGI_THEME="Everforest Dark"
     SKETCHYBAR_THEME="retro_82"
@@ -389,6 +405,7 @@ case "$THEME" in
     HERDR_THEME="rose-pine"
     NVIM_COLORSCHEME="ristretto"
     OPENCODE_THEME="ristretto"
+    OPENCODE_DESKTOP_THEME="monokai"
     MACWIFI_THEME="rose-pine"
     OPENLOGI_THEME="Everforest Dark"
     SKETCHYBAR_THEME="ristretto"
@@ -402,6 +419,7 @@ case "$THEME" in
     HERDR_THEME="rose-pine"
     NVIM_COLORSCHEME="rose-pine"
     OPENCODE_THEME="rosepine"
+    OPENCODE_DESKTOP_THEME="rosepine"
     MACWIFI_THEME="rose-pine"
     OPENLOGI_THEME="Spaceduck"
     SKETCHYBAR_THEME="rose_pine"
@@ -417,6 +435,7 @@ case "$THEME" in
     HERDR_THEME="rose-pine"
     NVIM_COLORSCHEME="rose-pine-dawn"
     OPENCODE_THEME="rosepine-dawn"
+    OPENCODE_DESKTOP_THEME="rosepine"
     MACWIFI_THEME="rose-pine-dawn"
     OPENLOGI_THEME="Rose Pine Dawn"
     SKETCHYBAR_THEME="rose_pine_dawn"
@@ -431,6 +450,7 @@ case "$THEME" in
     HERDR_THEME="rose-pine"
     NVIM_COLORSCHEME="rose-pine-moon"
     OPENCODE_THEME="rosepine-moon"
+    OPENCODE_DESKTOP_THEME="rosepine"
     MACWIFI_THEME="rose-pine-moon"
     OPENLOGI_THEME="Tokyo Moon"
     SKETCHYBAR_THEME="rose_pine_moon"
@@ -444,6 +464,7 @@ case "$THEME" in
     HERDR_THEME="tokyo-night"
     NVIM_COLORSCHEME="tokyonight-night"
     OPENCODE_THEME="tokyonight"
+    OPENCODE_DESKTOP_THEME="tokyonight"
     MACWIFI_THEME="tokyo-night"
     OPENLOGI_THEME="Tokyo Night"
     SKETCHYBAR_THEME="tokyo_night"
@@ -457,6 +478,7 @@ case "$THEME" in
     HERDR_THEME="tokyo-night"
     NVIM_COLORSCHEME="tokyonight-storm"
     OPENCODE_THEME="tokyonight-storm"
+    OPENCODE_DESKTOP_THEME="tokyonight"
     MACWIFI_THEME="tokyo-night-storm"
     OPENLOGI_THEME="Tokyo Storm"
     SKETCHYBAR_THEME="tokyo_night_storm"
@@ -474,6 +496,7 @@ case "$THEME" in
     HERDR_THEME="dracula"
     NVIM_COLORSCHEME="tomorrow-night-burns"
     OPENCODE_THEME="tomorrow-night-burns"
+    OPENCODE_DESKTOP_THEME="orng"
     MACWIFI_THEME="dracula"
     OPENLOGI_THEME="Fahrenheit"
     SKETCHYBAR_THEME="tomorrow_night_burns"
@@ -491,6 +514,7 @@ case "$THEME" in
     HERDR_THEME="terminal"
     NVIM_COLORSCHEME="vanta-black"
     OPENCODE_THEME="vanta-black"
+    OPENCODE_DESKTOP_THEME="vercel"
     MACWIFI_THEME="default"
     OPENLOGI_THEME="Default Dark"
     SKETCHYBAR_THEME="vanta_black"
@@ -720,6 +744,20 @@ with open(path, 'w') as f:
     f.write('\n')
 PYEOF
   echo "  configured system theme (restart opencode once to apply)"
+fi
+
+# ── OpenCode desktop ───────────────────────────────────────────────────────────
+# The desktop app keeps its theme in localStorage rather than a config file, and
+# that store is locked while the app runs. The sibling helper writes it now if
+# OpenCode is closed, otherwise queues it until every OpenCode process exits.
+# On its default "System" color scheme, the light/dark variant follows the
+# macOS appearance set below.
+echo "→ opencode desktop"
+OPENCODE_DESKTOP_THEME_SCRIPT="$SCRIPT_DIR/opencode-desktop-theme"
+if [[ ! -x "$OPENCODE_DESKTOP_THEME_SCRIPT" ]]; then
+  echo "  skipped (opencode-desktop-theme helper not found)"
+else
+  echo "  $($OPENCODE_DESKTOP_THEME_SCRIPT "$OPENCODE_DESKTOP_THEME")"
 fi
 
 # ── Macwifi ────────────────────────────────────────────────────────────────────

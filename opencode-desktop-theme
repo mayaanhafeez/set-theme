@@ -1,0 +1,349 @@
+#!/usr/bin/env bash
+# Queue or apply the OpenCode desktop app's theme without closing the app.
+#
+# The desktop app has no config-file theme setting: its renderer keeps the
+# choice in localStorage (`opencode-theme-id`), which Chromium stores in a
+# LevelDB under Application Support, and only themes bundled with the app are
+# accepted. LevelDB is locked while the app runs, so the new id is queued and
+# written once every OpenCode process has exited, as a record appended to the
+# database's write-ahead log. The cached theme CSS is dropped with it so the
+# next launch does not flash the previous theme before recomputing it.
+set -euo pipefail
+
+OPENCODE_DESKTOP_ROOT="${OPENCODE_DESKTOP_ROOT:-$HOME/Library/Application Support/ai.opencode.desktop}"
+OPENCODE_PROCESS_PATTERN="${OPENCODE_PROCESS_PATTERN:-/OpenCode\.app/Contents/}"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/set-theme"
+PENDING_FILE="$STATE_DIR/opencode-desktop-theme.pending"
+BACKUP_DIR="$STATE_DIR/opencode-desktop-localstorage.bak"
+WATCHER_PID_FILE="$STATE_DIR/opencode-desktop-theme-watcher.pid"
+WATCHER_LABEL="local.set-theme.opencode-desktop-theme"
+LEVELDB="$OPENCODE_DESKTOP_ROOT/Local Storage/leveldb"
+
+opencode_running() {
+  pgrep -f "$OPENCODE_PROCESS_PATTERN" >/dev/null 2>&1
+}
+
+apply_pending() {
+  [[ -f "$PENDING_FILE" ]] || return 0
+  local theme_id result
+  theme_id=$(tr -d '[:space:]' < "$PENDING_FILE")
+  result=$(python3 - "$LEVELDB" "$BACKUP_DIR" "$theme_id" <<'PYEOF'
+import fcntl
+import os
+import re
+import shutil
+import struct
+import sys
+
+db, backup, theme_id = sys.argv[1:]
+BLOCK, HEADER = 32768, 7
+FULL, FIRST, MIDDLE, LAST = 1, 2, 3, 4
+
+
+class Corrupt(Exception):
+    pass
+
+
+def make_table():
+    table = []
+    for i in range(256):
+        c = i
+        for _ in range(8):
+            c = (c >> 1) ^ (0x82F63B78 if c & 1 else 0)
+        table.append(c)
+    return table
+
+
+CRC_TABLE = make_table()
+
+
+def crc32c(data):
+    c = 0xFFFFFFFF
+    for b in data:
+        c = CRC_TABLE[(c ^ b) & 0xFF] ^ (c >> 8)
+    return c ^ 0xFFFFFFFF
+
+
+def mask(c):
+    return (((c >> 15) | (c << 17)) + 0xA282EAD8) & 0xFFFFFFFF
+
+
+def read_log(path):
+    """Return every record in a LevelDB log, refusing anything malformed."""
+    with open(path, "rb") as f:
+        data = f.read()
+    records, partial, pos = [], None, 0
+    while pos < len(data):
+        left = BLOCK - pos % BLOCK
+        if left < HEADER:
+            if data[pos:pos + left].strip(b"\0"):
+                raise Corrupt(path)
+            pos += left
+            continue
+        if pos + HEADER > len(data):
+            raise Corrupt(path)
+        crc, length, kind = struct.unpack_from("<IHB", data, pos)
+        end = pos + HEADER + length
+        if HEADER + length > left or end > len(data):
+            raise Corrupt(path)
+        payload = data[pos + HEADER:end]
+        if crc != mask(crc32c(bytes([kind]) + payload)):
+            raise Corrupt(path)
+        if kind == FULL and partial is None:
+            records.append(payload)
+        elif kind == FIRST and partial is None:
+            partial = payload
+        elif kind == MIDDLE and partial is not None:
+            partial += payload
+        elif kind == LAST and partial is not None:
+            records.append(partial + payload)
+            partial = None
+        else:
+            raise Corrupt(path)
+        pos = end
+    if partial is not None:
+        raise Corrupt(path)
+    return records, len(data)
+
+
+def varint(buf, i):
+    result = shift = 0
+    while True:
+        b = buf[i]
+        i += 1
+        result |= (b & 0x7F) << shift
+        if b < 0x80:
+            return result, i
+        shift += 7
+
+
+def encode_varint(n):
+    out = bytearray()
+    while n >= 0x80:
+        out.append((n & 0x7F) | 0x80)
+        n >>= 7
+    out.append(n)
+    return bytes(out)
+
+
+def skip_bytes(buf, i):
+    n, i = varint(buf, i)
+    return i + n
+
+
+def manifest_last_sequence(edits):
+    last = 0
+    for edit in edits:
+        i = 0
+        while i < len(edit):
+            tag, i = varint(edit, i)
+            if tag == 1:                       # comparator
+                i = skip_bytes(edit, i)
+            elif tag in (2, 3, 9):             # log / next file / prev log number
+                _, i = varint(edit, i)
+            elif tag == 4:                     # last sequence
+                seq, i = varint(edit, i)
+                last = max(last, seq)
+            elif tag == 5:                     # compact pointer
+                _, i = varint(edit, i)
+                i = skip_bytes(edit, i)
+            elif tag == 6:                     # deleted file
+                _, i = varint(edit, i)
+                _, i = varint(edit, i)
+            elif tag == 7:                     # new file
+                for _ in range(3):
+                    _, i = varint(edit, i)
+                i = skip_bytes(edit, i)
+                i = skip_bytes(edit, i)
+            else:
+                raise Corrupt("MANIFEST")
+    return last
+
+
+def batch_entries(batch):
+    """Yield (key, value-or-None) for each put/delete in a write batch."""
+    count = struct.unpack_from("<I", batch, 8)[0]
+    i = 12
+    for _ in range(count):
+        tag = batch[i]
+        i += 1
+        n, i = varint(batch, i)
+        key = batch[i:i + n]
+        i += n
+        value = None
+        if tag == 1:
+            n, i = varint(batch, i)
+            value = batch[i:i + n]
+            i += n
+        elif tag != 0:
+            raise Corrupt("batch")
+        yield key, value
+
+
+if not os.path.isdir(db):
+    print("skipped (OpenCode desktop localStorage not found)")
+    sys.exit(0)
+
+lock = open(os.path.join(db, "LOCK"), "a")
+try:
+    fcntl.lockf(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+except OSError:
+    print("busy")
+    sys.exit(3)
+
+try:
+    logs = sorted(
+        (int(m.group(1)), name)
+        for name in os.listdir(db)
+        if (m := re.fullmatch(r"(\d+)\.log", name))
+    )
+    if not logs:
+        raise Corrupt("no log")
+    with open(os.path.join(db, "CURRENT")) as f:
+        manifest = f.read().strip()
+    edits, _ = read_log(os.path.join(db, manifest))
+    last_seq = manifest_last_sequence(edits)
+
+    origin = None
+    for _, name in logs:
+        records, size = read_log(os.path.join(db, name))
+        for batch in records:
+            seq, count = struct.unpack_from("<QI", batch)
+            last_seq = max(last_seq, seq + max(count, 1) - 1)
+            for key, _ in batch_entries(batch):
+                if key.endswith(b"\x00\x01opencode-theme-id"):
+                    origin = key[:-len(b"\x00\x01opencode-theme-id")]
+    # The renderer is served from oc://renderer; Chromium prefixes origins
+    # with "_". Fall back to it when the key was compacted out of the logs.
+    origin = origin or b"_oc://renderer"
+
+    def key(name):
+        # "\x01" marks a Latin-1 key/value in Chromium's DOM storage encoding.
+        return origin + b"\x00\x01" + name
+
+    def put(k, v):
+        return b"\x01" + encode_varint(len(k)) + k + encode_varint(len(v)) + v
+
+    def delete(k):
+        return b"\x00" + encode_varint(len(k)) + k
+
+    ops = [
+        put(key(b"opencode-theme-id"), b"\x01" + theme_id.encode("latin-1")),
+        delete(key(b"opencode-theme-css-dark")),
+        delete(key(b"opencode-theme-css-light")),
+    ]
+    batch = struct.pack("<QI", last_seq + 1, len(ops)) + b"".join(ops)
+
+    # Frame the batch as log records the way LevelDB's own writer does.
+    out, pos, data, first = bytearray(), size, batch, True
+    while True:
+        left = BLOCK - pos % BLOCK
+        if left < HEADER:
+            out += b"\0" * left
+            pos += left
+            continue
+        chunk, data = data[:left - HEADER], data[left - HEADER:]
+        end = not data
+        kind = FULL if first and end else FIRST if first else LAST if end else MIDDLE
+        out += struct.pack("<IHB", mask(crc32c(bytes([kind]) + chunk)), len(chunk), kind) + chunk
+        pos += HEADER + len(chunk)
+        first = False
+        if end:
+            break
+
+    shutil.rmtree(backup, ignore_errors=True)
+    shutil.copytree(db, backup, ignore=shutil.ignore_patterns("LOCK"))
+    log_path = os.path.join(db, logs[-1][1])
+    with open(log_path, "ab") as f:
+        f.write(out)
+        f.flush()
+        os.fsync(f.fileno())
+    read_log(log_path)
+    print("ok")
+except (Corrupt, IndexError, struct.error, UnicodeEncodeError, OSError) as e:
+    print(f"skipped (unexpected localStorage layout: {e})")
+PYEOF
+) || true
+
+  # Do not erase a newer queued theme that arrived while the database was
+  # being updated, nor one that could not be written yet.
+  if [[ "$result" != "busy" ]] \
+    && [[ "$(tr -d '[:space:]' < "$PENDING_FILE" 2>/dev/null || true)" == "$theme_id" ]]; then
+    rm -f "$PENDING_FILE"
+  fi
+  printf '%s\n' "$result"
+}
+
+watch_for_exit() {
+  trap 'rm -f "$WATCHER_PID_FILE"' EXIT
+  while :; do
+    while opencode_running; do sleep 1; done
+    # Helpers and the sidecar can outlive the window briefly and flush
+    # localStorage on their way out. Require a second clean check.
+    sleep 2
+    opencode_running && continue
+    [[ "$(apply_pending)" == "busy" ]] || break
+  done
+  # `launchctl submit` jobs are kept alive by default. Unload this one after
+  # the queued update so it does not restart as an idle watcher.
+  launchctl remove "$WATCHER_LABEL" >/dev/null 2>&1 || true
+}
+
+start_watcher() {
+  local old_pid=""
+  # A submitted launchd job survives the terminal/shell that ran set-theme.
+  # Replace any older watcher; the pending file always holds the newest
+  # requested theme, so canceling an old watcher cannot lose a change.
+  if command -v launchctl >/dev/null 2>&1; then
+    launchctl remove "$WATCHER_LABEL" >/dev/null 2>&1 || true
+    if launchctl submit -l "$WATCHER_LABEL" -- /usr/bin/env \
+      "HOME=$HOME" \
+      "XDG_STATE_HOME=${XDG_STATE_HOME:-$HOME/.local/state}" \
+      "OPENCODE_DESKTOP_ROOT=$OPENCODE_DESKTOP_ROOT" \
+      "OPENCODE_PROCESS_PATTERN=$OPENCODE_PROCESS_PATTERN" \
+      "$0" --watch >/dev/null 2>&1; then
+      return
+    fi
+  fi
+
+  [[ -f "$WATCHER_PID_FILE" ]] && old_pid=$(tr -d '[:space:]' < "$WATCHER_PID_FILE")
+  if [[ "$old_pid" =~ ^[0-9]+$ ]] && kill -0 "$old_pid" 2>/dev/null; then
+    return
+  fi
+  nohup "$0" --watch >/dev/null 2>&1 &
+  printf '%s\n' "$!" > "$WATCHER_PID_FILE"
+}
+
+if [[ "${1:-}" == "--watch" ]]; then
+  watch_for_exit
+  exit 0
+fi
+
+THEME_ID="${1:-}"
+if [[ ! "$THEME_ID" =~ ^[a-z0-9-]+$ ]]; then
+  echo "usage: $0 <bundled-theme-id>" >&2
+  exit 1
+fi
+if [[ ! -d "$LEVELDB" ]]; then
+  echo "skipped (OpenCode desktop not found)"
+  exit 0
+fi
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "skipped (python3 not found)"
+  exit 0
+fi
+
+mkdir -p "$STATE_DIR"
+printf '%s\n' "$THEME_ID" > "$PENDING_FILE.tmp"
+mv "$PENDING_FILE.tmp" "$PENDING_FILE"
+
+RESULT=busy
+opencode_running || RESULT=$(apply_pending)
+case "$RESULT" in
+  busy)
+    start_watcher
+    echo "queued $THEME_ID (will apply after OpenCode quits; reopen it normally)"
+    ;;
+  ok) echo "configured $THEME_ID (next OpenCode launch will use it)" ;;
+  *) echo "$RESULT" ;;
+esac
