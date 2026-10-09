@@ -1,0 +1,48 @@
+{
+  "$schema": "https://github.com/longbridge/gpui-component/raw/refs/heads/main/.theme-schema.json",
+  "name": "Rose Pine Dawn",
+  "author": "Rose Pine / Omarchy",
+  "themes": [
+    {
+      "name": "Rose Pine Dawn",
+      "mode": "light",
+      "colors": {
+        "background": "#faf4ed",
+        "foreground": "#575279",
+        "border": "#dfdad9",
+        "accent.background": "#dfdad9",
+        "accent.foreground": "#575279",
+        "caret": "#575279",
+        "link.foreground": "#286983",
+        "link.active.foreground": "#56949f",
+        "muted.background": "#f2e9e1",
+        "muted.foreground": "#797593",
+        "primary.background": "#56949f",
+        "primary.foreground": "#faf4ed",
+        "primary.hover.background": "#286983",
+        "secondary.background": "#f2e9e1",
+        "secondary.foreground": "#575279",
+        "selection.background": "#dfdad9",
+        "sidebar.background": "#f2e9e1",
+        "sidebar.foreground": "#575279",
+        "title_bar.background": "#f2e9e1",
+        "title_bar.border": "#dfdad9",
+        "window.border": "#dfdad9",
+        "danger.background": "#b4637a",
+        "danger.foreground": "#faf4ed",
+        "success.background": "#286983",
+        "success.foreground": "#faf4ed",
+        "warning.background": "#ea9d34",
+        "warning.foreground": "#575279",
+        "info.background": "#56949f",
+        "info.foreground": "#faf4ed",
+        "base.red": "#b4637a",
+        "base.green": "#286983",
+        "base.blue": "#56949f",
+        "base.yellow": "#ea9d34",
+        "base.magenta": "#907aa9",
+        "base.cyan": "#d7827e"
+      }
+    }
+  ]
+}

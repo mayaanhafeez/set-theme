@@ -1,0 +1,48 @@
+{
+  "$schema": "https://github.com/longbridge/gpui-component/raw/refs/heads/main/.theme-schema.json",
+  "name": "Kitsune",
+  "author": "Aether",
+  "themes": [
+    {
+      "name": "Kitsune",
+      "mode": "light",
+      "colors": {
+        "background": "#F5C2D1",
+        "foreground": "#03000b",
+        "border": "#b8929d",
+        "accent.background": "#f6c8d6",
+        "accent.foreground": "#03000b",
+        "caret": "#03000b",
+        "link.foreground": "#3f539e",
+        "link.active.foreground": "#435b6a",
+        "muted.background": "#f6c8d6",
+        "muted.foreground": "#6c6567",
+        "primary.background": "#3f539e",
+        "primary.foreground": "#F5C2D1",
+        "primary.hover.background": "#5f73d3",
+        "secondary.background": "#f6c8d6",
+        "secondary.foreground": "#03000b",
+        "selection.background": "#b8929d",
+        "sidebar.background": "#f6c8d6",
+        "sidebar.foreground": "#03000b",
+        "title_bar.background": "#f6c8d6",
+        "title_bar.border": "#b8929d",
+        "window.border": "#b8929d",
+        "danger.background": "#774052",
+        "danger.foreground": "#F5C2D1",
+        "success.background": "#33548c",
+        "success.foreground": "#F5C2D1",
+        "warning.background": "#764664",
+        "warning.foreground": "#F5C2D1",
+        "info.background": "#3f539e",
+        "info.foreground": "#F5C2D1",
+        "base.red": "#774052",
+        "base.green": "#33548c",
+        "base.blue": "#3f539e",
+        "base.yellow": "#764664",
+        "base.magenta": "#6c497d",
+        "base.cyan": "#435b6a"
+      }
+    }
+  ]
+}

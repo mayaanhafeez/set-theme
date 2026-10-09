@@ -1,0 +1,23 @@
+# Kitsune, ported from the supplied Aether theme kit
+background = #F5C2D1
+foreground = #03000b
+selection-background = #03000b
+selection-foreground = #F5C2D1
+cursor-color = #03000b
+cursor-text = #F5C2D1
+palette = 0=#F5C2D1
+palette = 1=#774052
+palette = 2=#33548c
+palette = 3=#764664
+palette = 4=#3f539e
+palette = 5=#6c497d
+palette = 6=#435b6a
+palette = 7=#03000b
+palette = 8=#6c6567
+palette = 9=#a05f76
+palette = 10=#5275bd
+palette = 11=#9e658b
+palette = 12=#5f73d3
+palette = 13=#9267aa
+palette = 14=#637e91
+palette = 15=#1a102b

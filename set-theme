@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # set-theme — unified theme switcher for kitty, ghostty, tmux, herdr, nvim,
 # opencode, macwifi, openlogi, btop, sketchybar, borders (JankyBorders), the
-# macOS accent color and the desktop wallpaper
+# macOS appearance/accent color and the desktop wallpaper
 #
 # Usage:
 #   set-theme <theme>        apply theme and save it (name is fuzzy-matched,
@@ -29,7 +29,7 @@ done
 SCRIPT_DIR=$(cd "$(dirname "$SELF")" && pwd)
 
 # Available themes, in display order.
-THEMES=(andromeda archriot blueridge-dark catppuccin-mocha dark-xp drive hinterlands kanagawa matte-black nord osaka-jade retro-82 ristretto rose-pine rose-pine-moon tokyo-night tokyo-night-storm tomorrow-night-burns vanta-black)
+THEMES=(andromeda archriot blueridge-dark catppuccin-mocha dark-xp drive hinterlands kanagawa kitsune last-horizon matte-black nord osaka-jade retro-82 ristretto rose-pine rose-pine-dawn rose-pine-moon tokyo-night tokyo-night-storm tomorrow-night-burns vanta-black)
 DEMO_DELAY=5
 
 list_themes() {
@@ -136,7 +136,9 @@ if [[ "$RESOLVED" != "$THEME" ]]; then
 fi
 THEME="$RESOLVED"
 if [[ "$IS_DEMO" != true ]]; then
-  echo "$THEME" > "$HOME/set-theme/current_theme"
+  if [[ -d "$HOME/set-theme" ]]; then
+    echo "$THEME" > "$HOME/set-theme/current_theme"
+  fi
 fi
 # ── Theme definitions ──────────────────────────────────────────────────────────
 # NVIM_COLORSCHEME must be a key of `local_themes` in the nvim config's
@@ -145,6 +147,8 @@ fi
 # OPENLOGI_THEME is an OpenLogi theme display name. User theme JSON files live
 # under ~/.config/openlogi/themes; Drive is installed there from this repo.
 # BORDERS_COLOR is the JankyBorders active-window border, as 0xAARRGGBB.
+
+APPEARANCE="dark"
 
 case "$THEME" in
   andromeda)
@@ -291,6 +295,38 @@ case "$THEME" in
     BORDERS_COLOR="0xffdcd7ba"
     ACCENT_COLOR="yellow"            # warm parchment
     ;;
+  kitsune)
+    # Aether-generated Omarchy theme: light pink with muted indigo, plum, blue,
+    # and teal accents. Terminal, nvim, btop, sketchybar, and
+    # OpenLogi files are ported directly from the supplied desktop theme kit.
+    KITTY_THEME="Kitsune"
+    GHOSTTY_THEME="Kitsune"
+    HERDR_THEME="catppuccin"
+    NVIM_COLORSCHEME="aether"
+    OPENCODE_THEME="kitsune"
+    MACWIFI_THEME="catppuccin-mocha"
+    OPENLOGI_THEME="Kitsune"
+    SKETCHYBAR_THEME="kitsune"
+    BTOP_THEME="$HOME/.config/btop/themes/kitsune.theme"
+    BORDERS_COLOR="0xff3f539e"  # indigo accent
+    ACCENT_COLOR="blue"
+    APPEARANCE="light"
+    ;;
+  last-horizon)
+    # An official Omarchy theme: near-black with dusty rose, slate blue, and
+    # pale cyan accents. App-specific files are generated from colors.toml.
+    KITTY_THEME="Last Horizon"
+    GHOSTTY_THEME="Last Horizon"
+    HERDR_THEME="terminal"
+    NVIM_COLORSCHEME="aether"
+    OPENCODE_THEME="last-horizon"
+    MACWIFI_THEME="rose-pine"
+    OPENLOGI_THEME="Last Horizon"
+    SKETCHYBAR_THEME="last_horizon"
+    BTOP_THEME="$HOME/.config/btop/themes/last_horizon.theme"
+    BORDERS_COLOR="0xffd6d3de"
+    ACCENT_COLOR="graphite"
+    ;;
   matte-black)
     # An official Omarchy theme (basecamp/omarchy, themes/matte-black): near-black
     # with amber and burnt-red accents. Ghostty ships it; the kitty, nvim, opencode,
@@ -373,6 +409,22 @@ case "$THEME" in
     BORDERS_COLOR="0xff5fcfc9"  # teal
     ACCENT_COLOR="purple"            # iris
     ;;
+  rose-pine-dawn)
+    # Omarchy's current rose-pine theme is the light Dawn variant. Keep it as a
+    # distinct option here so the existing dark rose-pine theme remains intact.
+    KITTY_THEME="Rosé Pine Dawn"
+    GHOSTTY_THEME="Rose Pine Dawn"
+    HERDR_THEME="rose-pine"
+    NVIM_COLORSCHEME="rose-pine-dawn"
+    OPENCODE_THEME="rosepine-dawn"
+    MACWIFI_THEME="rose-pine-dawn"
+    OPENLOGI_THEME="Rose Pine Dawn"
+    SKETCHYBAR_THEME="rose_pine_dawn"
+    BTOP_THEME="$HOME/.config/btop/themes/rose_pine_dawn.theme"
+    BORDERS_COLOR="0xff56949f"  # foam
+    ACCENT_COLOR="blue"              # foam
+    APPEARANCE="light"
+    ;;
   rose-pine-moon)
     KITTY_THEME="Rosé Pine Moon"
     GHOSTTY_THEME="Rose Pine Moon"
@@ -453,6 +505,37 @@ case "$THEME" in
     ;;
 esac
 
+# Custom theme files owned by this repository are installed on demand. Themes
+# bundled with an app continue to be resolved by that app's normal theme loader.
+if [[ -d "$SCRIPT_DIR/themes/$THEME" ]]; then
+  [[ -f "$SCRIPT_DIR/themes/$THEME/kitty.conf" ]] && {
+    mkdir -p "$HOME/.config/kitty/themes"
+    cp "$SCRIPT_DIR/themes/$THEME/kitty.conf" "$HOME/.config/kitty/themes/$KITTY_THEME.conf"
+  }
+  [[ -f "$SCRIPT_DIR/themes/$THEME/ghostty" ]] && {
+    mkdir -p "$HOME/.config/ghostty/themes"
+    cp "$SCRIPT_DIR/themes/$THEME/ghostty" "$HOME/.config/ghostty/themes/$GHOSTTY_THEME"
+  }
+  [[ -f "$SCRIPT_DIR/themes/$THEME/btop.theme" ]] && {
+    mkdir -p "$HOME/.config/btop/themes"
+    cp "$SCRIPT_DIR/themes/$THEME/btop.theme" "$BTOP_THEME"
+  }
+  [[ -f "$SCRIPT_DIR/themes/$THEME/sketchybar.lua" ]] && {
+    mkdir -p "$HOME/.config/sketchybar/themes"
+    cp "$SCRIPT_DIR/themes/$THEME/sketchybar.lua" "$HOME/.config/sketchybar/themes/$SKETCHYBAR_THEME.lua"
+  }
+  [[ -f "$SCRIPT_DIR/themes/$THEME/neovim.lua" ]] && {
+    mkdir -p "$HOME/.config/nvim/lua/set-theme"
+    cp "$SCRIPT_DIR/themes/$THEME/neovim.lua" "$HOME/.config/nvim/lua/set-theme/$THEME.lua"
+  }
+  if [[ -d "$SCRIPT_DIR/themes/$THEME/wallpapers" ]]; then
+    mkdir -p "$HOME/Pictures/wallpapers/$THEME"
+    cp "$SCRIPT_DIR/themes/$THEME/wallpapers/"* "$HOME/Pictures/wallpapers/$THEME/"
+  fi
+fi
+
+CUSTOM_KITTY_THEME="$SCRIPT_DIR/themes/$THEME/kitty.conf"
+
 echo "$THEME" > "$THEME_FILE"
 echo "Setting theme: $THEME"
 echo ""
@@ -462,7 +545,12 @@ echo ""
 # applies them live via the kitty socket without showing the interactive UI.
 echo "→ kitty"
 KITTY_THEME_CONF="$HOME/.config/kitty/current-theme.conf"
-if kitty +kitten themes --dump-theme "$KITTY_THEME" > "$KITTY_THEME_CONF" 2>/dev/null; then
+if [[ -f "$CUSTOM_KITTY_THEME" ]]; then
+  cp "$CUSTOM_KITTY_THEME" "$KITTY_THEME_CONF"
+  kitty @ --to=unix:/tmp/kitty set-colors --all "$KITTY_THEME_CONF" 2>/dev/null \
+    && echo "  applied" \
+    || echo "  config updated (kitty not running)"
+elif kitty +kitten themes --dump-theme "$KITTY_THEME" > "$KITTY_THEME_CONF" 2>/dev/null; then
   kitty @ --to=unix:/tmp/kitty set-colors --all "$KITTY_THEME_CONF" 2>/dev/null \
     && echo "  applied" \
     || echo "  config updated (kitty not running)"
@@ -569,9 +657,15 @@ NVIM_THEME_FILE="$HOME/.config/nvim/lua/plugins/theme.lua"
 if [[ -f "$NVIM_THEME_FILE" ]]; then
   if grep -q "^local FALLBACK = " "$NVIM_THEME_FILE"; then
     sed -i '' "s/^local FALLBACK = \".*\"/local FALLBACK = \"$NVIM_COLORSCHEME\"/" "$NVIM_THEME_FILE"
+    if [[ "$THEME" == "rose-pine-dawn" ]] \
+      && ! grep -q '^  \["rose-pine-dawn"\] = ' "$NVIM_THEME_FILE"; then
+      sed -i '' '/^  \["rose-pine-moon"\] = /i\
+  ["rose-pine-dawn"] = { plugin = { "rose-pine/neovim", name = "rose-pine", opts = { variant = "dawn" } } },
+' "$NVIM_THEME_FILE"
+    fi
     NVIM_PLUGIN=""
     case "$NVIM_COLORSCHEME" in
-      rose-pine|rose-pine-moon) NVIM_PLUGIN="rose-pine" ;;
+      rose-pine|rose-pine-dawn|rose-pine-moon) NVIM_PLUGIN="rose-pine" ;;
       tokyonight-night|tokyonight-storm) NVIM_PLUGIN="tokyonight.nvim" ;;
       catppuccin) NVIM_PLUGIN="catppuccin" ;;
       aether) NVIM_PLUGIN="aether.nvim" ;;
@@ -655,19 +749,16 @@ else
 fi
 
 # ── OpenLogi ───────────────────────────────────────────────────────────────────
-# OpenLogi picks its UI theme by display name. Only theme_dark is set — every
-# theme here is dark, so the app's light-mode theme and appearance setting are
-# left as configured. Install theme files owned by this switcher before editing
-# the config; OpenLogi discovers them on its next launch.
+# OpenLogi picks its UI theme by display name. Set the slot matching the theme's
+# appearance and switch the app to that appearance.
 # The app reads config.toml at launch and rewrites the whole file when it saves
 # a setting, so it must be restarted to pick this up, and a setting changed in
 # a running OpenLogi can overwrite this edit.
 echo "→ openlogi"
-# Install the custom theme JSON owned by this switcher (Drive, ArchRiot and
-# BlueRidge Dark each live as a file under openlogi/). All others map to a
+# Install the custom theme JSON owned by this switcher. All others map to a
 # built-in OpenLogi theme by display name, so no file is dropped in.
 case "$THEME" in
-  drive|archriot|blueridge-dark|dark-xp)
+  drive|archriot|blueridge-dark|dark-xp|kitsune|last-horizon|rose-pine-dawn)
     if [[ -f "$SCRIPT_DIR/openlogi/$THEME.json" ]]; then
       for profile in openlogi openlogi-dev; do
         mkdir -p "$HOME/.config/$profile/themes"
@@ -678,26 +769,30 @@ case "$THEME" in
 esac
 OPENLOGI_CONF="$HOME/.config/openlogi/config.toml"
 if [[ -f "$OPENLOGI_CONF" ]]; then
-  if grep -q '^theme_dark = ' "$OPENLOGI_CONF"; then
-    sed -i '' "s/^theme_dark = .*/theme_dark = \"$OPENLOGI_THEME\"/" "$OPENLOGI_CONF"
+  OPENLOGI_THEME_KEY="theme_$APPEARANCE"
+  if grep -q "^$OPENLOGI_THEME_KEY = " "$OPENLOGI_CONF"; then
+    sed -i '' "s/^$OPENLOGI_THEME_KEY = .*/$OPENLOGI_THEME_KEY = \"$OPENLOGI_THEME\"/" "$OPENLOGI_CONF"
   elif grep -q '^\[app_settings\]' "$OPENLOGI_CONF"; then
     # Add the key inside [app_settings]; appending to the file would land it in
     # whichever table happens to come last. cat back over the original rather
     # than mv so the config keeps its 0600 permissions.
-    awk -v theme="$OPENLOGI_THEME" '
+    awk -v key="$OPENLOGI_THEME_KEY" -v theme="$OPENLOGI_THEME" '
       BEGIN { in_app = 0; added = 0 }
       /^\[app_settings\][[:space:]]*$/ { in_app = 1; print; next }
       /^\[/ {
-        if (in_app && !added) { print "theme_dark = \"" theme "\""; added = 1 }
+        if (in_app && !added) { print key " = \"" theme "\""; added = 1 }
         in_app = 0
       }
       { print }
-      END { if (in_app && !added) print "theme_dark = \"" theme "\"" }
+      END { if (in_app && !added) print key " = \"" theme "\"" }
     ' "$OPENLOGI_CONF" > "$OPENLOGI_CONF.tmp"
     cat "$OPENLOGI_CONF.tmp" > "$OPENLOGI_CONF"
     rm -f "$OPENLOGI_CONF.tmp"
   else
-    printf '\n[app_settings]\ntheme_dark = "%s"\n' "$OPENLOGI_THEME" >> "$OPENLOGI_CONF"
+    printf '\n[app_settings]\n%s = "%s"\n' "$OPENLOGI_THEME_KEY" "$OPENLOGI_THEME" >> "$OPENLOGI_CONF"
+  fi
+  if grep -q '^appearance = ' "$OPENLOGI_CONF"; then
+    sed -i '' "s/^appearance = .*/appearance = \"$APPEARANCE\"/" "$OPENLOGI_CONF"
   fi
   if pgrep -x openlogi-gui >/dev/null 2>&1; then
     echo "  config updated (quit and reopen OpenLogi to apply)"
@@ -706,6 +801,18 @@ if [[ -f "$OPENLOGI_CONF" ]]; then
   fi
 else
   echo "  skipped (config.toml not found)"
+fi
+
+# ── Appearance (macOS) ─────────────────────────────────────────────────────────
+echo "→ appearance"
+if [[ "$APPEARANCE" == "light" ]]; then
+  osascript -e 'tell application "System Events" to tell appearance preferences to set dark mode to false' \
+    && echo "  applied light" \
+    || echo "  failed to set light"
+else
+  osascript -e 'tell application "System Events" to tell appearance preferences to set dark mode to true' \
+    && echo "  applied dark" \
+    || echo "  failed to set dark"
 fi
 
 # ── Btop ───────────────────────────────────────────────────────────────────────

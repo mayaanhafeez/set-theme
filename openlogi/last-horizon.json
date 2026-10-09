@@ -1,0 +1,48 @@
+{
+  "$schema": "https://github.com/longbridge/gpui-component/raw/refs/heads/main/.theme-schema.json",
+  "name": "Last Horizon",
+  "author": "Omarchy",
+  "themes": [
+    {
+      "name": "Last Horizon",
+      "mode": "dark",
+      "colors": {
+        "background": "#0c0b0c",
+        "foreground": "#FAFCFB",
+        "border": "#584e51",
+        "accent.background": "#1e1d1e",
+        "accent.foreground": "#FAFCFB",
+        "caret": "#e2dddc",
+        "link.foreground": "#b59790",
+        "link.active.foreground": "#c4d8e2",
+        "muted.background": "#1e1d1e",
+        "muted.foreground": "#584e51",
+        "primary.background": "#b59790",
+        "primary.foreground": "#0c0b0c",
+        "primary.hover.background": "#a5a0b6",
+        "secondary.background": "#1e1d1e",
+        "secondary.foreground": "#cfd3cd",
+        "selection.background": "#584e51",
+        "sidebar.background": "#090809",
+        "sidebar.foreground": "#FAFCFB",
+        "title_bar.background": "#090809",
+        "title_bar.border": "#584e51",
+        "window.border": "#584e51",
+        "danger.background": "#c38b7b",
+        "danger.foreground": "#0c0b0c",
+        "success.background": "#87a9b0",
+        "success.foreground": "#0c0b0c",
+        "warning.background": "#6B5E73",
+        "warning.foreground": "#FAFCFB",
+        "info.background": "#b59790",
+        "info.foreground": "#0c0b0c",
+        "base.red": "#c38b7b",
+        "base.green": "#87a9b0",
+        "base.blue": "#b59790",
+        "base.yellow": "#6B5E73",
+        "base.magenta": "#c4d8e2",
+        "base.cyan": "#a5a0b6"
+      }
+    }
+  ]
+}
