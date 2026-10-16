@@ -583,17 +583,23 @@ else
 fi
 
 # ── Tmux ───────────────────────────────────────────────────────────────────────
-# Tmux uses the terminal's ANSI palette, matching Omarchy's status bar styling.
+# Tmux uses the terminal's ANSI palette with plain, default-style window labels.
 echo "→ tmux"
 TMUX_THEME_CONF="$HOME/.tmux-theme.conf"
 cat > "$TMUX_THEME_CONF" <<'EOF'
-set -g status-style "bg=default,fg=default"
-set -g status-left "#[fg=black,bg=blue,bold] #S #[bg=default] "
-set -g status-right "#[fg=blue]#{?pane_in_mode,COPY ,}#{?client_prefix,PREFIX ,}#{?window_zoomed_flag,ZOOM ,}#[fg=brightblack]#h "
-set -g window-status-format "#[fg=brightblack] #I:#W "
-set -g window-status-current-format "#[fg=blue,bold] #I:#W "
+set -g status-style "bg=black,fg=white"
+set -g status-left ""
+set -g status-right ""
+set -g window-status-format "#I:#W#F"
+set -g window-status-current-format "#I:#W#F"
+set -g window-status-style "fg=brightblack"
+set -g window-status-current-style "fg=blue"
+set -g window-status-separator " "
+setw -g pane-status-current-style "default"
 set -g pane-border-style "fg=brightblack"
 set -g pane-active-border-style "fg=blue"
+set -g popup-style "bg=default,fg=default"
+set -g popup-border-style "bg=default,fg=blue"
 set -g message-style "bg=default,fg=blue"
 set -g message-command-style "bg=default,fg=blue"
 set -g mode-style "bg=blue,fg=black"
