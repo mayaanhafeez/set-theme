@@ -648,22 +648,16 @@ else
 fi
 
 # ── Ghostty ────────────────────────────────────────────────────────────────────
-# Ghostty reads config from Application Support on macOS, ~/.config/ghostty on Linux.
-# SIGUSR2 triggers a live config reload. `pkill ghostty` cannot find the app on
-# macOS — the kernel's process name is the exec path truncated to 16 chars
-# ("/Applications/Gh"), which no sensible pattern matches — so pids come from
-# ps, matching ucomm exactly.
+# Ghostty's config lives in ~/.config/ghostty (config.ghostty, or the legacy
+# extensionless config). SIGUSR2 triggers a live config reload. `pkill ghostty`
+# cannot find the app on macOS — the kernel's process name is the exec path
+# truncated to 16 chars ("/Applications/Gh"), which no sensible pattern
+# matches — so pids come from ps, matching ucomm exactly.
 echo "→ ghostty"
-if [[ -d "$HOME/Library/Application Support/com.mitchellh.ghostty" ]]; then
-  GHOSTTY_CONF="$HOME/Library/Application Support/com.mitchellh.ghostty/config.ghostty"
-  GHOSTTY_AUTO="$HOME/Library/Application Support/com.mitchellh.ghostty/auto/theme.ghostty"
-else
-  GHOSTTY_CONF="$HOME/.config/ghostty/config"
-  GHOSTTY_AUTO=""
-fi
+GHOSTTY_CONF="$HOME/.config/ghostty/config.ghostty"
+[[ -f "$GHOSTTY_CONF" ]] || GHOSTTY_CONF="$HOME/.config/ghostty/config"
 if [[ -f "$GHOSTTY_CONF" ]]; then
   sed -i '' "s/^theme = .*/theme = $GHOSTTY_THEME/" "$GHOSTTY_CONF"
-  [[ -n "$GHOSTTY_AUTO" ]] && printf 'theme = %s\n' "$GHOSTTY_THEME" > "$GHOSTTY_AUTO"
   GHOSTTY_PIDS=$(ps ax -o pid=,ucomm= | awk '$2 == "ghostty" { print $1 }')
   GHOSTTY_RELOADED=false
   for GHOSTTY_PID in $GHOSTTY_PIDS; do
