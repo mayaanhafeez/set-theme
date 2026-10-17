@@ -136,9 +136,7 @@ if [[ "$RESOLVED" != "$THEME" ]]; then
 fi
 THEME="$RESOLVED"
 if [[ "$IS_DEMO" != true ]]; then
-  if [[ -d "$HOME/set-theme" ]]; then
-    echo "$THEME" > "$HOME/set-theme/current_theme"
-  fi
+  echo "$THEME" > "$SCRIPT_DIR/current_theme"
 fi
 # ── Theme definitions ──────────────────────────────────────────────────────────
 # NVIM_COLORSCHEME must be a key of `local_themes` in the nvim config's
@@ -585,7 +583,8 @@ fi
 # ── Tmux ───────────────────────────────────────────────────────────────────────
 # Tmux uses the terminal's ANSI palette with plain, default-style window labels.
 echo "→ tmux"
-TMUX_THEME_CONF="$HOME/.tmux-theme.conf"
+TMUX_THEME_CONF="$HOME/.config/tmux/tmux-theme.conf"
+mkdir -p "$(dirname "$TMUX_THEME_CONF")"
 cat > "$TMUX_THEME_CONF" <<'EOF'
 set -g status-style "bg=black,fg=white"
 set -g status-left ""

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-current_theme=$(cat ~/set-theme/current_theme)
+# set-theme saves the active theme here (and in its own current_theme file).
+current_theme=$(tr -d '[:space:]' < ~/.config/theme)
 
 if [[ "$#" > 1 ]]; then
   echo 'too many args'
