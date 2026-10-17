@@ -530,7 +530,7 @@ esac
 # Custom theme files owned by this repository are installed on demand. Themes
 # bundled with an app continue to be resolved by that app's normal theme loader.
 if [[ -d "$SCRIPT_DIR/themes/$THEME" ]]; then
-  [[ -f "$SCRIPT_DIR/themes/$THEME/kitty.conf" ]] && {
+  [[ -f "$SCRIPT_DIR/themes/$THEME/kitty.conf" ]] && command -v kitty >/dev/null 2>&1 && {
     mkdir -p "$HOME/.config/kitty/themes"
     cp "$SCRIPT_DIR/themes/$THEME/kitty.conf" "$HOME/.config/kitty/themes/$KITTY_THEME.conf"
   }
@@ -565,9 +565,13 @@ echo ""
 # ── Kitty ──────────────────────────────────────────────────────────────────────
 # Dumps theme colors into current-theme.conf (included by kitty.conf), then
 # applies them live via the kitty socket without showing the interactive UI.
+# Skipped without the kitty CLI, so set-theme never creates ~/.config/kitty on
+# a machine that doesn't use kitty.
 echo "→ kitty"
 KITTY_THEME_CONF="$HOME/.config/kitty/current-theme.conf"
-if [[ -f "$CUSTOM_KITTY_THEME" ]]; then
+if ! command -v kitty >/dev/null 2>&1; then
+  echo "  skipped (kitty not installed)"
+elif [[ -f "$CUSTOM_KITTY_THEME" ]]; then
   cp "$CUSTOM_KITTY_THEME" "$KITTY_THEME_CONF"
   kitty @ --to=unix:/tmp/kitty set-colors --all "$KITTY_THEME_CONF" 2>/dev/null \
     && echo "  applied" \
