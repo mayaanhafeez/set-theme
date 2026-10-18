@@ -145,6 +145,9 @@ fi
 # OPENLOGI_THEME is an OpenLogi theme display name. User theme JSON files live
 # under ~/.config/openlogi/themes; Drive is installed there from this repo.
 # BORDERS_COLOR is the JankyBorders active-window border, as 0xAARRGGBB.
+# BORDERS_ACTIVE optionally overrides it for borders only and may be a gradient,
+# e.g. "gradient(top_left=0xff...,bottom_right=0xff...)"; BORDERS_COLOR stays the
+# solid accent (Chrome uses it). BORDERS_INACTIVE defaults to 0xff414550.
 # OPENCODE_DESKTOP_THEME must be a theme id bundled with the OpenCode desktop
 # app, which cannot load custom themes; each theme maps to the closest one.
 
@@ -423,6 +426,8 @@ case "$THEME" in
     SKETCHYBAR_THEME="rose_pine"
     BTOP_THEME="$HOME/.config/btop/themes/rose_pine.theme"
     BORDERS_COLOR="0xff5fcfc9"  # teal
+    BORDERS_ACTIVE="gradient(top_left=0xee33ccff,bottom_right=0xee00ff99)"  # 45deg cyan → green
+    BORDERS_INACTIVE="0xaa595959"
     ACCENT_COLOR="purple"            # iris
     ;;
   rose-pine-dawn)
@@ -878,14 +883,17 @@ if [[ -f "$SKETCHYBAR_SETTINGS" ]]; then
 fi
 
 # ── Borders (JankyBorders) ─────────────────────────────────────────────────────
-# Only the active-window border is themed; width/style/inactive stay as configured.
+# Active and inactive colors are themed; width/style stay as configured.
 # Re-invoking the borders binary hands the new options to the running instance.
 echo "→ borders"
 BORDERS_CONF="$HOME/.config/borders/bordersrc"
+BORDERS_ACTIVE="${BORDERS_ACTIVE:-$BORDERS_COLOR}"
+BORDERS_INACTIVE="${BORDERS_INACTIVE:-0xff414550}"
 if [[ -f "$BORDERS_CONF" ]]; then
-  sed -i '' "s/^\([[:space:]]*\)active_color=.*/\1active_color=$BORDERS_COLOR/" "$BORDERS_CONF"
+  sed -i '' -e "s/^\([[:space:]]*\)active_color=.*/\1active_color=\"$BORDERS_ACTIVE\"/" \
+    -e "s/^\([[:space:]]*\)inactive_color=.*/\1inactive_color=\"$BORDERS_INACTIVE\"/" "$BORDERS_CONF"
   if command -v borders >/dev/null 2>&1 && pgrep -x borders >/dev/null 2>&1; then
-    borders active_color="$BORDERS_COLOR" >/dev/null 2>&1 \
+    borders active_color="$BORDERS_ACTIVE" inactive_color="$BORDERS_INACTIVE" >/dev/null 2>&1 \
       && echo "  applied" \
       || echo "  config updated (could not reach borders)"
   else
