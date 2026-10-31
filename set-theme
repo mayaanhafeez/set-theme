@@ -931,7 +931,7 @@ else
   WALLPAPERS=()
   while IFS= read -r -d '' f; do
     WALLPAPERS+=("$f")
-  done < <(find "$WALLPAPER_DIR" -maxdepth 1 -type f \
+  done < <(find -L "$WALLPAPER_DIR" -maxdepth 1 -type f \
     \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.heic' \
        -o -iname '*.tif' -o -iname '*.tiff' -o -iname '*.gif' \) -print0)
 

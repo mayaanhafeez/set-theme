@@ -9,7 +9,8 @@ if [[ "$#" > 1 ]]; then
 fi
 
 if [[ "$#" == "0" ]]; then
-  var=$(find ~/Pictures/wallpapers/$current_theme -type f | fzf)
+  # Follow relative image links shared between theme folders.
+  var=$(find -L "$HOME/Pictures/wallpapers/$current_theme" -type f | fzf)
   if [[ -z "$var" ]]; then
     echo "No wallpaper selected"
     exit 1
